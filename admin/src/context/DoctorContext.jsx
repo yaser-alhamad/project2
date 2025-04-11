@@ -31,7 +31,19 @@ const DoctorContextProvider = (props) => {
             toast.error(error.message)
         }
     }
-
+    //add patient record
+    const addPatientRecord = async () => {
+        try {
+            const { data } = await axios.post(backendUrl + '/api/doctor/add-patient-record', {a:1}, { headers: { dToken } })
+            if (data.success) {
+                toast.success(data.message)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
     // Getting Doctor profile data from Database using API
     const getProfileData = async () => {
         try {
@@ -120,15 +132,14 @@ const DoctorContextProvider = (props) => {
         dashData, getDashData,
         profileData, setProfileData,
         getProfileData,
+        addPatientRecord
     }
 
     return (
         <DoctorContext.Provider value={value}>
             {props.children}
         </DoctorContext.Provider>
-    )
-
-
+    );
 }
 
-export default DoctorContextProvider
+export default DoctorContextProvider; 

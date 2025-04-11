@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import { v2 as cloudinary } from "cloudinary";
 import userModel from "../models/userModel.js";
+import patientRecordModel from "../models/patientRecordModel.js";
+import mongoose from "mongoose";
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -40,7 +42,33 @@ const appointmentsAdmin = async (req, res) => {
     }
 
 }
-
+//API to get all patients list
+const allPatientsRecord = async (req, res) => {
+    try {
+        const patients = await patientRecordModel.find({}).select('id name docId date_of_birth gender visits');
+       
+        const patientsData = await Promise.all(patients.map(async (patient) => {
+            const doctorInfo = await doctorModel.findById(patient.docId).select('name speciality');
+            return {
+                id: patient.id,
+                name: patient.name,
+                docId: patient.docId,
+                date_of_birth: patient.date_of_birth,
+                gender: patient.gender,
+                visits: patient.visits.length,
+                doctorInfo: {
+                    name: doctorInfo ? doctorInfo.name : null,
+                    speciality: doctorInfo ? doctorInfo.speciality : null,
+                }
+            };
+        }));
+        
+        res.json({ success: true, patientsData });
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 // API for appointment cancellation
 const appointmentCancel = async (req, res) => {
     try {
@@ -154,5 +182,6 @@ export {
     appointmentCancel,
     addDoctor,
     allDoctors,
-    adminDashboard
-}
+    adminDashboard,
+    allPatientsRecord,
+} 
