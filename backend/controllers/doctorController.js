@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
-
+import patientRecordModel from "../models/patientRecordModel.js";
 // API for doctor Login 
 const loginDoctor = async (req, res) => {
 
@@ -30,7 +30,87 @@ const loginDoctor = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+//API to add patient record
+const addPatientRecord = async (req, res) => {
+    try {
+        const {docId } = req.body;
+        console.log(docId);
+       // const { docId, userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = req.body;
+        const { userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = {
+       
+        userId: "67890",
+        name: "John Doe",
+        date_of_birth: "1990-01-01",
+        gender: "Male",
+        contact: {
+            phone: "123-456-7890",
+            address: {
+                line1: "123 Main St",
+                line2: "Apt 4B"
+            }
+        },
+        medical_history: ["Hypertension", "Diabetes"],
+        medications: [
+            {
+                name: "Metformin",
+                dosage: "500mg",
+                frequency: "Twice a day"
+            }
+        ],
+        allergies: ["Penicillin"],
+        immunizations: ["COVID-19 mRNA (2 doses, last booster: 2022-01-01)"],
+        visits: [
+            {
+                date: "2023-01-15",
+                reason: "Routine check-up",
+                vital_signs: {
+                    blood_pressure: "120/80",
+                    heart_rate: 72,
+                    weight_lbs: 180,
+                    blood_glucose_mg_dl: 90
+                },
+                physician_notes: "Patient is stable.",
+                next_appointment: "2023-07-15"
+            }
+        ]
+        }
 
+        
+        // Validate required fields
+        if (!docId || !userId || !name || !date_of_birth || !gender || !contact) {
+            return res.json({ success: false, message: "Missing required fields" });
+        }
+
+        // Create a new patient record
+        const patientRecordData = {
+            docId,
+            userId,
+            name,
+            date_of_birth: new Date(date_of_birth),
+            gender,
+            contact,
+            medical_history: Array.isArray(medical_history) ? medical_history : [],
+            medications: Array.isArray(medications) ? medications : [],
+            allergies: Array.isArray(allergies) ? allergies : [],
+            immunizations: Array.isArray(immunizations) ? immunizations : [],
+            visits: Array.isArray(visits) ? visits.map(visit => ({
+                ...visit,
+                date: new Date(visit.date),
+                next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : null
+            })) : []
+        };
+        
+        
+        const newPatientRecord = new patientRecordModel(patientRecordData);
+        
+        await newPatientRecord.save();
+        console.log("Patient record added successfully");
+        res.json({ success: true, message: 'Patient record added successfully' });
+    } catch (error) {
+        console.error("Error in addPatientRecord:", error);
+        res.json({ success: false, message: error.message });
+    }
+}
 // API to get doctor appointments for doctor panel
 const appointmentsDoctor = async (req, res) => {
     try {
@@ -199,5 +279,6 @@ export {
     appointmentComplete,
     doctorDashboard,
     doctorProfile,
-    updateDoctorProfile
+    updateDoctorProfile,
+    addPatientRecord
 }

@@ -6,7 +6,7 @@ import { assets } from '../../assets/assets'
 
 const DoctorAppointments = () => {
 
-  const { dToken, appointments, getAppointments, cancelAppointment, completeAppointment } = useContext(DoctorContext)
+  const { dToken, appointments, getAppointments, cancelAppointment, completeAppointment, addPatientRecord } = useContext(DoctorContext)
   const { slotDateFormat, calculateAge, currency } = useContext(AppContext)
 
   useEffect(() => {
@@ -14,10 +14,12 @@ const DoctorAppointments = () => {
       getAppointments()
     }
   }, [dToken])
-
+  
   return (
     <div className='w-full max-w-6xl m-5 '>
-
+      <div className='flex justify-between'>
+        <button className='bg-primary text-white px-4 py-2 rounded-md' onClick={() => addPatientRecord()}>Add Patient Record
+          </button></div>
       <p className='mb-3 text-lg font-medium'>All Appointments</p>
 
       <div className='bg-white border rounded text-sm max-h-[80vh] overflow-y-scroll'>
