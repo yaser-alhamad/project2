@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginDoctor, appointmentsDoctor, appointmentCancel,addPatientRecord, doctorList, changeAvailablity, appointmentComplete, doctorDashboard, doctorProfile, updateDoctorProfile } from '../controllers/doctorController.js';
+import { loginDoctor,newAppointments, appointmentsDoctor, appointmentCancel,addPatientRecord,getPatientRecord, doctorList, changeAvailablity, appointmentComplete, doctorDashboard, doctorProfile, updateDoctorProfile, doctorPatientsRecord } from '../controllers/doctorController.js';
 import authDoctor from '../middleware/authDoctor.js';
 const doctorRouter = express.Router();
 
@@ -13,5 +13,8 @@ doctorRouter.get("/dashboard", authDoctor, doctorDashboard)
 doctorRouter.get("/profile", authDoctor, doctorProfile)
 doctorRouter.post("/update-profile", authDoctor, updateDoctorProfile)
 doctorRouter.post("/add-patient-record", authDoctor, addPatientRecord)
+doctorRouter.get("/patients-record/", authDoctor, doctorPatientsRecord)
+doctorRouter.get("/patient-record/:id", authDoctor, getPatientRecord)
+doctorRouter.get("/new-appointments", authDoctor, newAppointments)
 
 export default doctorRouter;

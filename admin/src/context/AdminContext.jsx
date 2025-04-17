@@ -14,7 +14,8 @@ const AdminContextProvider = (props) => {
     const [appointments, setAppointments] = useState([])
     const [doctors, setDoctors] = useState([])
     const [dashData, setDashData] = useState(false)
-    const [patients, setPatients] = useState([])
+    const [allpatients, setAllPatients] = useState([])
+    const [patientRecord, setPatientRecord] = useState([])
 
     // Getting all Doctors data from Database using API
     const getAllDoctors = async () => {
@@ -77,13 +78,39 @@ const AdminContextProvider = (props) => {
         try {
             const { data } = await axios.get(backendUrl + '/api/admin/all-patients-record', { headers: { aToken } })
             if (data.success) {
-                setPatients(data.patientsData)
+                setAllPatients(data.patientsData)
             } else {
                 toast.error(data.message)
             }
         } catch (error) {
             toast.error(error.message)
     }   
+    }
+    // Function to get patient record using API
+    const getPatientRecord = async (id) => {
+        try {
+            const { data } = await axios.get(backendUrl + `/api/admin/patient-record/${id}`, { headers: { aToken } })
+            if (data.success) {
+                setPatientRecord(data.patientRecord)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+    // Function to edit patient record using API
+    const editPatientRecord = async (id, patientData) => {
+        try {
+            const { data } = await axios.put(backendUrl + `/api/admin/edit-patient-record/${id}`, patientData, { headers: { aToken } })
+            if (data.success) {
+                toast.success(data.message)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
     // Function to cancel appointment using API
     const cancelAppointment = async (appointmentId) => {
@@ -136,7 +163,10 @@ const AdminContextProvider = (props) => {
         cancelAppointment,
         dashData,
         getAllPatientsRecord,
-        patients
+        allpatients,
+        getPatientRecord,
+        patientRecord,
+        editPatientRecord
     }
 
     return (
