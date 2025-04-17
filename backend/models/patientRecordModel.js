@@ -9,7 +9,7 @@ const patientSchema = new mongoose.Schema(
     userId: { type: String, required: true },
     // Patient's full name
     name: { type: String, required: true },
-    
+   
     // Date of birth and gender
     date_of_birth: { type: Date, required: true },
     gender: { type: String, required: true },
@@ -43,20 +43,20 @@ const patientSchema = new mongoose.Schema(
       type: [
         {
           vaccine: String,
-          type: String,
           doses: Number,
-          last_booster: String, // Optional for vaccines like tetanus
+          date: Date
         },
       ],
       default: [],
     },
-
     // Medical visits with vital signs and notes
     visits: {
       type: [
         {
           date: Date, // Date of the visit
           reason: String, // Reason for visit
+          doctor_name: String,// Physician name
+          doctor_id: String,// Physician id
           vital_signs: {
             blood_pressure: String,
             heart_rate: Number,

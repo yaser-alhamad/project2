@@ -69,6 +69,52 @@ const allPatientsRecord = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+// API to get patient record
+const getPatientRecord = async (req, res) => {
+    try {
+        const { id } = req.params
+        const patientRecord = await patientRecordModel.findById(id)
+        res.json({ success: true, patientRecord })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+
+//API to edit patient record
+const editPatientRecord = async (req, res) => {
+    try {
+               const {id, docId, userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = req.body;
+                const patientData = {
+                    docId,
+                    userId,
+                    name,
+                    date_of_birth: Date.parse(date_of_birth),
+                    gender,
+                    contact,
+                    medical_history: Array.isArray(medical_history) ? medical_history : [],
+                    medications: Array.isArray(medications) ? medications : [],
+                    allergies: Array.isArray(allergies) ? allergies : [],
+                    immunizations: Array.isArray(immunizations) ? immunizations : [],
+                    visits: Array.isArray(visits) ? visits.map(visit => ({
+                        ...visit,
+                        date: new Date(visit.date),
+                        next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : null
+                    })) : [],
+                }
+               const patientRecord = await patientRecordModel.findByIdAndUpdate(id, patientData, { new: true })
+               if(patientRecord){
+                res.json({ success: true, message: 'Patient record updated successfully' })
+               }else{
+                res.json({ success: false, message: 'Patient record not found' })
+               }
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 // API for appointment cancellation
 const appointmentCancel = async (req, res) => {
     try {
@@ -184,4 +230,7 @@ export {
     allDoctors,
     adminDashboard,
     allPatientsRecord,
+    getPatientRecord,
+    
+    editPatientRecord
 } 

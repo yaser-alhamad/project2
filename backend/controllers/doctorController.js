@@ -30,12 +30,24 @@ const loginDoctor = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+const getPatientRecord = async (req, res) => {
+    try {
+        const { id } = req.params
+        const patientRecord = await patientRecordModel.findById(id)
+        res.json({ success: true, patientRecord })
+    } catch (error) {
+        console.log(error)
+      
+        res.json({ success: false, message: error.message })
+    }
+}
 //API to add patient record
 const addPatientRecord = async (req, res) => {
     try {
         const {docId } = req.body;
-        console.log(docId);
-       // const { docId, userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = req.body;
+      
+      // const { docId, userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = req.body;
+      
         const { userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = {
        
         userId: "67890",
@@ -55,14 +67,32 @@ const addPatientRecord = async (req, res) => {
                 name: "Metformin",
                 dosage: "500mg",
                 frequency: "Twice a day"
+            },
+            {
+                name: "Aspirin",
+                dosage: "100mg",
+                frequency: "Once a day"
             }
         ],
         allergies: ["Penicillin"],
-        immunizations: ["COVID-19 mRNA (2 doses, last booster: 2022-01-01)"],
+       immunizations: [
+        {
+            vaccine: "COVID-19 mRNA",
+            doses: 2,
+            date: "2022-01-01"
+        },
+       {
+        vaccine: "Influenza ",
+        doses: 1,
+        date: "2022-01-01"
+       }
+       ],
         visits: [
             {
                 date: "2023-01-15",
                 reason: "Routine check-up",
+                doctor_name: "John Doe",
+                doctor_id: docId,
                 vital_signs: {
                     blood_pressure: "120/80",
                     heart_rate: 72,
@@ -71,8 +101,23 @@ const addPatientRecord = async (req, res) => {
                 },
                 physician_notes: "Patient is stable.",
                 next_appointment: "2023-07-15"
+            },
+            {
+                date: "2023-06-10",
+                reason: "Follow-up visit",
+                doctor_name: "John Doe",
+                doctor_id: docId,
+                vital_signs: {
+                    blood_pressure: "118/76",
+                    heart_rate: 70,
+                    weight_lbs: 178,
+                    blood_glucose_mg_dl: 85
+                },
+                physician_notes: "Patient shows improvement.",
+                next_appointment: "2023-12-10"
             }
         ]
+       
         }
 
         
@@ -86,7 +131,7 @@ const addPatientRecord = async (req, res) => {
             docId,
             userId,
             name,
-            date_of_birth: new Date(date_of_birth),
+            date_of_birth: Date.parse(date_of_birth),
             gender,
             contact,
             medical_history: Array.isArray(medical_history) ? medical_history : [],
@@ -97,14 +142,13 @@ const addPatientRecord = async (req, res) => {
                 ...visit,
                 date: new Date(visit.date),
                 next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : null
-            })) : []
+            })) : [],
+        
         };
-        
-        
         const newPatientRecord = new patientRecordModel(patientRecordData);
         
         await newPatientRecord.save();
-        console.log("Patient record added successfully");
+       
         res.json({ success: true, message: 'Patient record added successfully' });
     } catch (error) {
         console.error("Error in addPatientRecord:", error);
@@ -112,20 +156,73 @@ const addPatientRecord = async (req, res) => {
     }
 }
 // API to get doctor appointments for doctor panel
-const appointmentsDoctor = async (req, res) => {
+
+// API to get new appointments for doctor panel
+const newAppointments = async (req, res) => {
     try {
-
         const { docId } = req.body
-        const appointments = await appointmentModel.find({ docId })
+        const appointmentsData = await appointmentModel.find({ docId ,isCompleted:false})
+       
+        //get patient id from patient record model
+       
 
-        res.json({ success: true, appointments })
+         // Loop through the appointmentsData to extract patient IDs
+        
+         const newAppointments = await Promise.all(appointmentsData.map(async     (appointment) => {
+            const isRecord =  await patientRecordModel.findOne({ userId: appointment.userId })
+            return {
+             userData:{
+                name:appointment.userData.name,
+                id:appointment.userId,
+                dob:appointment.userData.dob,
+                gender:appointment.userData.gender,
+                image:appointment.userData.image,
+             },
+             amount:appointment.amount,
+             isCompleted:appointment.isCompleted,
+             slotDate:appointment.slotDate,
+             slotTime:appointment.slotTime,
+             
+                isRecord:!! isRecord,
+                recordId:isRecord ? isRecord._id.toString() : null
 
+             
+                }}));
+                
+                console.log('newAppointments',newAppointments)
+         res.json({ success: true, newAppointments })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }  
+    }
+// API to get doctor patients record for doctor panel
+const doctorPatientsRecord = async (req, res) => {
+    try {
+        const { docId } = req.body
+        
+        const patients = await patientRecordModel.find({ docId ,'visits.doctor_id': docId })
+        
+        const patientsData = await Promise.all(patients.map(async (patient) => {
+            return {
+                id: patient.id,
+                name: patient.name,
+                docId: patient.docId,
+                date_of_birth: patient.date_of_birth,
+                gender: patient.gender,
+                visits: patient.visits.length,
+                last_visit:patient.visits[patient.visits.length - 1].date,
+            };
+        }));
+  
+        res.json({ success: true, patientsData });
+        
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
 }
-
 // API to cancel appointment for doctor panel
 const appointmentCancel = async (req, res) => {
     try {
@@ -228,41 +325,82 @@ const updateDoctorProfile = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+const appointmentsDoctor = async (req, res) => {
+    try {  
+        const { docId } = req.body
+        const appointmentsData = await appointmentModel.find({ docId })
+        // Attempt to find a single patient record where the userId matches any from the appointments list
+        const match = await patientRecordModel.findOne({ 
+            userId: { $in: appointmentsData.map(a => a.userId) } 
+          });
+        
+          const isRecord = !!match; // true if found, false if not
+         const appointments = appointmentsData.map(appointment => ({
+             userData:{
+                name:appointment.userData.name,
+                id:appointment.userId,
+                dob:appointment.userData.dob,
+                gender:appointment.userData.gender,
+                image:appointment.userData.image,
+             },
+             amount:appointment.amount,
+             isCompleted:appointment.isCompleted,
+             payment:appointment.payment,
+             slotDate:appointment.slotDate,
+             slotTime:appointment.slotTime,
+             isRecord: isRecord
+         }));
+        
+         res.json({ success: true, appointments })
 
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 // API to get dashboard data for doctor panel
 const doctorDashboard = async (req, res) => {
     try {
-
         const { docId } = req.body
-
-        const appointments = await appointmentModel.find({ docId })
-
+        
+        const appointmentsData = await appointmentModel.find({ docId })
+        const doctorName = await doctorModel.findById(docId).select('name')
+        
+        // Attempt to find a single patient record where the userId matches any from the appointments list
         let earnings = 0
-
-        appointments.map((item) => {
+        appointmentsData.map((item) => {
             if (item.isCompleted || item.payment) {
                 earnings += item.amount
             }
         })
-
         let patients = []
-
-        appointments.map((item) => {
+        appointmentsData.map((item) => {
             if (!patients.includes(item.userId)) {
                 patients.push(item.userId)
             }
         })
-
-
-
-        const dashData = {
+      
+        const Data = {
             earnings,
-            appointments: appointments.length,
-            patients: patients.length,
-            latestAppointments: appointments.reverse()
+            name:doctorName.name,
+            appointment: appointmentsData.map((item) => ({
+                userData:{
+                    name:item.userData.name,
+                    id:item.userId,
+                    dob:item.userData.dob,
+                    gender:item.userData.gender,
+                    image:item.userData.image,
+                 },
+                 amount:item.amount,
+                 isCompleted:item.isCompleted,
+                 payment:item.payment,
+                 slotDate:item.slotDate,
+                 slotTime:item.slotTime,
+            })),
+            patients: patients.length, 
         }
-
-        res.json({ success: true, dashData })
+       
+        res.json({ success: true, Data })
 
     } catch (error) {
         console.log(error)
@@ -280,5 +418,8 @@ export {
     doctorDashboard,
     doctorProfile,
     updateDoctorProfile,
-    addPatientRecord
+    addPatientRecord,
+    doctorPatientsRecord,
+    getPatientRecord,
+    newAppointments
 }
