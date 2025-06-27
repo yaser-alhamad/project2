@@ -6,7 +6,10 @@ import validator from "validator";
 import { v2 as cloudinary } from "cloudinary";
 import userModel from "../models/userModel.js";
 import patientRecordModel from "../models/patientRecordModel.js";
-import mongoose from "mongoose";
+import { logActivity, formatTimeAgo } from "../utils/activityLogger.js";
+import { Activity } from "../models/activity.js";
+import SoltsDate from "../models/soltsDateModel.js";
+import SoltsTable from "../models/soltsTableModel.js";
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -118,17 +121,23 @@ const editPatientRecord = async (req, res) => {
 // API for appointment cancellation
 const appointmentCancel = async (req, res) => {
     try {
-
         const { appointmentId } = req.body
-        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+        const appointment = await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+        
+        // Get the doctor and patient names for the message
+        const doctor = await doctorModel.findById(appointment.docId);
+        const patient = await userModel.findById(appointment.userId);
+        
+        // Log the activity using helper function
+        await logActivity('Appointment', 
+            `Appointment cancelled for patient ${patient.name} with Dr. ${doctor.name}`
+        );
 
         res.json({ success: true, message: 'Appointment Cancelled' })
-
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
 // API for adding Doctor
@@ -178,6 +187,10 @@ const addDoctor = async (req, res) => {
 
         const newDoctor = new doctorModel(doctorData)
         await newDoctor.save()
+        
+        // Log activity using helper function
+        await logActivity('New Doctor', `Dr. ${name} joined the platform`)
+
         res.json({ success: true, message: 'Doctor Added' })
 
     } catch (error) {
@@ -189,7 +202,7 @@ const addDoctor = async (req, res) => {
 // API to get all doctors list for admin panel
 const allDoctors = async (req, res) => {
     try {
-
+        await updateDoctorPerformanceData()
         const doctors = await doctorModel.find({}).select('-password')
         res.json({ success: true, doctors })
 
@@ -206,11 +219,17 @@ const adminDashboard = async (req, res) => {
         const doctors = await doctorModel.find({})
         const users = await userModel.find({})
         const appointments = await appointmentModel.find({})
+        
+        // Calculate total revenue from appointments
+        const totalRevenue = appointments
+            .filter(appointment => !appointment.cancelled)
+            .reduce((sum, appointment) => sum + appointment.amount, 0)
 
         const dashData = {
             doctors: doctors.length,
             appointments: appointments.length,
             patients: users.length,
+            revenue: totalRevenue,
             latestAppointments: appointments.reverse()
         }
 
@@ -222,6 +241,248 @@ const adminDashboard = async (req, res) => {
     }
 }
 
+// Get recent activities
+const getRecentActivities = async (req, res) => {
+    try {
+        const activities = await Activity.find()
+            .sort({ timestamp: -1 })
+            .limit(10);
+        
+        // Format time for each activity using the helper
+        const formattedActivities = activities.map(activity => {
+            return {
+                type: activity.type,
+                message: activity.message,
+                time: formatTimeAgo(activity.timestamp)
+            };
+        });
+       
+        res.status(200).json({
+            success: true,
+            activities: formattedActivities
+        });
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching activities'
+        });
+    }
+};
+
+// Update doctor performance data (runs once per hour)
+const updateDoctorPerformanceData = async () => {
+    try {
+        // Fetch all appointments
+        const appointments = await appointmentModel.find({});
+        
+        // Get all doctors
+        const doctors = await doctorModel.find({});
+        
+        // Process each doctor
+        for (const doctor of doctors) {
+            const doctorId = doctor._id.toString();
+            
+            // Get all appointments for this doctor
+            const allDoctorAppointments = appointments.filter(app => 
+                app.docId && app.docId.toString() === doctorId
+            );
+            
+            // Get active (non-cancelled) appointments
+            const activeAppointments = allDoctorAppointments.filter(app => !app.cancelled);
+            
+            // Get completed appointments
+            const completedAppointments = allDoctorAppointments.filter(app => app.isCompleted);
+            
+            // Calculate total revenue
+            const totalRevenue = activeAppointments.reduce((sum, app) => 
+                sum + (Number(app.amount) || 0), 0);
+            
+            // Calculate completion percentage
+            const completionPercentage = allDoctorAppointments.length > 0 
+                ? Math.round((completedAppointments.length / allDoctorAppointments.length) * 100) 
+                : 0;
+            
+            // Count unique patients
+            const uniquePatientIds = new Set();
+            allDoctorAppointments.forEach(app => {
+                if (app.userId) {
+                    uniquePatientIds.add(app.userId.toString());
+                }
+            });
+            
+            // Update performance data in doctor document
+            await doctorModel.findByIdAndUpdate(doctorId, {
+                PerformanceData: {
+                    total_appointments: activeAppointments.length,
+                    total_revenue: totalRevenue,
+                    total_reviews: doctor.PerformanceData?.total_reviews || 0,
+                    total_rating: doctor.PerformanceData?.total_rating || 0,
+                    completion_rate: completionPercentage,
+                    patient_count: uniquePatientIds.size,
+                    updated_at: new Date()
+                }
+            });
+        }
+        
+        return true;
+    } catch (error) {
+        console.log("Error updating doctor performance data:", error);
+        return false;
+    }
+};
+
+
+
+
+// Update in adminController.js
+const getSystemStatus = async (req, res) => {
+  try {
+    // // Get real EMR system status from the EMR controller
+    // const emrStatusResponse = await axios.get(`${process.env.BASE_URL}/api/emr/system-status`, 
+    //   { headers: { aToken: req.headers.aToken } }
+    // );
+    
+    const emrStatus = emrStatusResponse.data.success ? 
+      (emrStatusResponse.data.status.online ? "online" : "offline") : 
+      "error";
+    
+    // Rest of your existing code...
+    
+    // Return all system statuses
+    res.json({
+      success: true,
+      systemStatus: {
+        emrSystem: emrStatus,
+        patientDatabase: dbStatus,
+        apiLatency: apiLatency
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+//api to generate slots for a doctor
+const generateSlots = async (req, res) => {
+    try {
+        const { doctorId } = req.body;
+        const startDate = new Date();
+        const doctor = await doctorModel.findById(doctorId);
+        
+        if(!doctor){
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+
+        // Generate slots for the next day only
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const formattedDate = tomorrow.toISOString().split('T')[0];
+
+        // Skip Fridays
+        if (tomorrow.getDay() === 5) {
+            return res.json({ success: false, message: 'Cannot generate slots for Friday' });
+        }
+
+        // Check if slots already exist for this date
+        const existingSlots = await SoltsTable.findOne({ 
+            doctorId, 
+            date: formattedDate 
+        });
+        
+        if (existingSlots) {
+            return res.json({ success: false, message: `Slots already exist for ${formattedDate}` });
+        }
+
+        const slotTimes = [
+            "09:00 AM",
+            "10:00 AM",
+            "11:00 AM",
+            "12:00 PM",
+            "01:00 PM",
+            "02:00 PM",
+            "03:00 PM",
+            "04:00 PM",
+            "05:00 PM",
+        ];
+
+        const newSlots = new SoltsTable({
+            doctorId,
+            date: formattedDate,
+            slots: slotTimes.map((time, index) => ({
+                slotId: `${formattedDate}-${index+1}`,
+                slotTime: time,
+                isBooked: false,
+                isAvailable: true
+            }))
+        });
+
+        await newSlots.save();
+        res.json({ 
+            success: true, 
+            message: `Slots for ${formattedDate} generated for doctor`,
+            date: formattedDate
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+//api to get all slots
+const getSlots = async (req, res) => {
+    try {
+        const {doctorId} = req.params
+        // Modified to only get non-archived slots
+        const query = { isArchived: false }
+        
+        // If doctorId is provided, filter by doctor
+        if (doctorId) {
+            query.doctorId = doctorId
+        }
+        
+        const slots = await SoltsTable.find(query)
+        const slotsData = await Promise.all(slots.map(async (slot) => {
+            const doctorInfo = await doctorModel.findById(slot.doctorId).select('name speciality')
+            return {
+                id: slot._id,
+                date: slot.date,
+                slots: slot.slots,
+                doctorInfo: doctorInfo
+            }
+        }))
+        res.json({ 
+            success: true, 
+            slotsData,
+            totalActive: slotsData.length
+        })
+       
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+//api to change slot availability
+const changeSlotAvailability = async (req, res) => {
+    try {
+        const { slotId, slotDayId } = req.body;
+      
+        const slotDay = await SoltsTable.findById(slotDayId)
+        
+        const slot = slotDay.slots.find(slot => slot._id.toString() === slotId)
+        slot.isAvailable = !slot.isAvailable
+        await slotDay.save()
+        if(!slot){
+            return res.json({ success: false, message: 'Slot not found' });
+        }
+
+        res.json({ success: true, message: 'Slot availability updated' });
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message });
+    }
+}
+// Export all controllers
 export {
     loginAdmin,
     appointmentsAdmin,
@@ -231,6 +492,12 @@ export {
     adminDashboard,
     allPatientsRecord,
     getPatientRecord,
-    
-    editPatientRecord
+    editPatientRecord,
+    getRecentActivities,
+    logActivity,
+    updateDoctorPerformanceData,
+    getSystemStatus,
+    generateSlots,
+    getSlots,
+    changeSlotAvailability
 } 

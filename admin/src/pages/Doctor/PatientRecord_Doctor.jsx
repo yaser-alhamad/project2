@@ -1,7 +1,7 @@
-
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DoctorContext } from '../../context/DoctorContext';
+
 import {
   UserCircleIcon,
   DocumentTextIcon,
@@ -16,7 +16,7 @@ import {
 import { SectionCard, VitalSign, InfoBox, InfoItem } from '../../components/Cards';
 import Loading from '../../components/Loading';
 import { toast } from 'react-toastify';
-const PatientRecord_Admin = () => {
+const PatientRecord_Doctor = () => {    
   const { id } = useParams();
   
   const { dToken, getPatientRecord, patientRecord, editPatientRecord } = useContext(DoctorContext);
@@ -78,7 +78,7 @@ const PatientRecord_Admin = () => {
   useEffect(() => {
     if(dToken){
       getPatientRecord(id);
-      console.log(patientRecord)
+     
     }
   }, [id, dToken]);
 
@@ -521,6 +521,7 @@ const PatientRecord_Admin = () => {
             <p className="text-gray-500 text-center py-4">No visit data available</p>
           )}
         </SectionCard>
+
       </div>
 
       {showEditOverviewModal && (
@@ -795,4 +796,4 @@ const PatientRecord_Admin = () => {
   );
 };
 
-export default PatientRecord_Admin;
+export default PatientRecord_Doctor;

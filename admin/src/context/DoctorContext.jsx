@@ -12,7 +12,8 @@ const DoctorContextProvider = (props) => {
     const [dToken, setDToken] = useState(localStorage.getItem('dToken') ? localStorage.getItem('dToken') : '')
     const [appointments, setAppointments] = useState([])
     const [dashData, setDashData] = useState([])
-    
+    const [allSlots, setAllSlots] = useState([])
+
     const [profileData, setProfileData] = useState(false)
     const [drPatientsRecord, setDrPatientsRecord] = useState([])
     const [patientRecord, setPatientRecord] = useState([])
@@ -112,14 +113,11 @@ const DoctorContextProvider = (props) => {
     const cancelAppointment = async (appointmentId) => {
 
         try {
-
             const { data } = await axios.post(backendUrl + '/api/doctor/cancel-appointment', { appointmentId }, { headers: { dToken } })
-
+            console.log(appointmentId)
             if (data.success) {
                 toast.success(data.message)
-                getAppointments()
-                // after creating dashboard
-                getDashData()
+                getNewAppointments()
             } else {
                 toast.error(data.message)
             }
@@ -140,9 +138,7 @@ const DoctorContextProvider = (props) => {
 
             if (data.success) {
                 toast.success(data.message)
-                getAppointments()
-                // Later after creating getDashData Function
-                getDashData()
+                getNewAppointments()
             } else {
                 toast.error(data.message)
             }
@@ -174,7 +170,34 @@ const DoctorContextProvider = (props) => {
 
     }
   
-    
+    const changeSlotAvailability =async (slotId,slotDayId)=>{
+       
+        try{
+            const {data} =await axios.post(backendUrl+'/api/doctor/change-slot-availability',{slotId,slotDayId},{headers:{dToken}})
+           
+            if(data.success){
+                toast.success(data.message)
+               
+            }else{
+                toast.error(data.message)
+            }
+        }catch(error){
+            console.log(error)
+        }
+    }
+    const fetchActiveSlots=async()=>{
+        try {
+            const response = await axios.get(backendUrl+'/api/doctor/get-slots/',{ headers: { dToken } })
+            if (response.data.success) {
+                setAllSlots(response.data.slotsData || [])
+            }
+           
+           
+        } catch (error) {
+            console.error("Error fetching active slots:", error)
+
+        }
+    }
 
     const value = {
         dToken, setDToken, backendUrl,
@@ -192,7 +215,10 @@ const DoctorContextProvider = (props) => {
         patientRecord,
         newAppointments,
         getNewAppointments,
-        
+        changeSlotAvailability,
+        allSlots,
+        setAllSlots,
+        fetchActiveSlots
     }
 
     return (

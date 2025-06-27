@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import  { useContext } from 'react'
 import { assets } from '../assets/assets'
 import { NavLink } from 'react-router-dom'
 import { DoctorContext } from '../context/DoctorContext'
@@ -26,18 +26,22 @@ const Sidebar = () => {
             <img className='min-w-5' src={assets.appointment_icon} alt='' />
             <p className='hidden md:block'>Appointments</p>
           </NavLink>
-          <NavLink to={'/add-doctor'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
-            <img className='min-w-5' src={assets.add_icon} alt='' />
-            <p className='hidden md:block'>Add Doctor</p>
-          </NavLink>
+          
           <NavLink to={'/doctor-list'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
             <img className='min-w-5' src={assets.people_icon} alt='' />
             <p className='hidden md:block'>Doctors List</p>
           </NavLink>
+         
           <NavLink to={'/allpatients'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
             <img className='min-w-5' src={assets.people_icon} alt='' />
             <p className='hidden md:block'>Patients Record</p>
           </NavLink>
+          <NavLink to={'/admin/manage-slots'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}> 
+            <img className='min-w-5' src={assets.people_icon} alt='' />
+            <p className='hidden md:block'>Manage Slots</p>
+          </NavLink>
+       
+        
         </ul>}
 
         {dToken && <ul className='text-[#515151] mt-5'>
@@ -58,6 +62,10 @@ const Sidebar = () => {
           <NavLink to={'/doctor/patients'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
             <img className='min-w-5' src={assets.people_icon} alt='' />
             <p className='hidden md:block'>Patients</p>
+          </NavLink>
+          <NavLink to={'/doctor/manage-slots_doctor'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
+            <img className='min-w-5' src={assets.people_icon} alt='' />
+            <p className='hidden md:block'>Manage Slots</p>
           </NavLink>
           
         </ul>}

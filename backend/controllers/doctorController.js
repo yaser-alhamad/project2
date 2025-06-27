@@ -3,6 +3,11 @@ import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import patientRecordModel from "../models/patientRecordModel.js";
+import { logActivity } from "../utils/activityLogger.js";
+import userModel from "../models/userModel.js";
+
+import SoltsTable from "../models/soltsTableModel.js";
+
 // API for doctor Login 
 const loginDoctor = async (req, res) => {
 
@@ -161,13 +166,8 @@ const addPatientRecord = async (req, res) => {
 const newAppointments = async (req, res) => {
     try {
         const { docId } = req.body
-        const appointmentsData = await appointmentModel.find({ docId ,isCompleted:false})
+        const appointmentsData = await appointmentModel.find({ docId ,isCompleted:false,cancelled:false})
        
-        //get patient id from patient record model
-       
-
-         // Loop through the appointmentsData to extract patient IDs
-        
          const newAppointments = await Promise.all(appointmentsData.map(async     (appointment) => {
             const isRecord =  await patientRecordModel.findOne({ userId: appointment.userId })
             return {
@@ -182,14 +182,14 @@ const newAppointments = async (req, res) => {
              isCompleted:appointment.isCompleted,
              slotDate:appointment.slotDate,
              slotTime:appointment.slotTime,
-             
+             id:appointment._id,
                 isRecord:!! isRecord,
                 recordId:isRecord ? isRecord._id.toString() : null
 
              
                 }}));
                 
-                console.log('newAppointments',newAppointments)
+             
          res.json({ success: true, newAppointments })
 
     } catch (error) {
@@ -226,16 +226,13 @@ const doctorPatientsRecord = async (req, res) => {
 // API to cancel appointment for doctor panel
 const appointmentCancel = async (req, res) => {
     try {
-
         const { docId, appointmentId } = req.body
-
         const appointmentData = await appointmentModel.findById(appointmentId)
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
             return res.json({ success: true, message: 'Appointment Cancelled' })
         }
-
-        res.json({ success: false, message: 'Appointment Cancelled' })
+        res.json({ success: false, message: 'Appointment Not Found' })
 
     } catch (error) {
         console.log(error)
@@ -253,6 +250,16 @@ const appointmentComplete = async (req, res) => {
         const appointmentData = await appointmentModel.findById(appointmentId)
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
+            
+            // Get doctor and patient names
+            const doctor = await doctorModel.findById(appointmentData.docId);
+            const patient = await userModel.findById(appointmentData.userId);
+            
+            // Log activity
+            await logActivity('Appointment', 
+                `Dr. ${doctor.name} completed appointment with ${patient.name}`
+            );
+            
             return res.json({ success: true, message: 'Appointment Completed' })
         }
 
@@ -313,16 +320,27 @@ const doctorProfile = async (req, res) => {
 // API to update doctor profile data from  Doctor Panel
 const updateDoctorProfile = async (req, res) => {
     try {
-
-        const { docId, fees, address, available } = req.body
-
-        await doctorModel.findByIdAndUpdate(docId, { fees, address, available })
-
-        res.json({ success: true, message: 'Profile Updated' })
-
+        const { id } = req.params;
+        const { name, speciality, about, fees } = req.body;
+        
+        // Update doctor in database
+        const doctor = await doctorModel.findByIdAndUpdate(id, 
+            { name, speciality, about, fees }, 
+            { new: true }
+        );
+        
+        if (doctor) {
+            // Log activity using helper function
+            await logActivity('Doctor', `Dr. ${doctor.name} updated their profile`);
+            
+            res.json({ success: true, message: 'Profile updated' });
+        } else {
+            res.json({ success: false, message: 'Doctor not found' });
+        }
+        
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
 }
 const appointmentsDoctor = async (req, res) => {
@@ -393,6 +411,7 @@ const doctorDashboard = async (req, res) => {
                  },
                  amount:item.amount,
                  isCompleted:item.isCompleted,
+                 cancelled:item.cancelled,
                  payment:item.payment,
                  slotDate:item.slotDate,
                  slotTime:item.slotTime,
@@ -405,6 +424,36 @@ const doctorDashboard = async (req, res) => {
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
+    }
+}
+
+const changeSlotAvailability = async (req, res) => {
+    try {
+        const { slotId, slotDayId } = req.body;
+    
+        const slotDay = await SoltsTable.findById(slotDayId)
+        const slot = slotDay.slots.find(slot => slot._id.toString() === slotId)
+        slot.isAvailable = !slot.isAvailable
+        await slotDay.save()
+        if(!slot){
+            return res.json({ success: false, message: 'Slot not found' });
+        }
+
+        res.json({ success: true, message: 'Slot availability updated' });
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message });
+    }
+}
+
+const getActiveSlots = async (req, res) => {
+    try {
+        const { docId } = req.body
+        const slotsData = await SoltsTable.find({ doctorId: docId })
+        res.json({ success: true, slotsData })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message });
     }
 }
 
@@ -421,5 +470,8 @@ export {
     addPatientRecord,
     doctorPatientsRecord,
     getPatientRecord,
-    newAppointments
+    newAppointments,
+    changeSlotAvailability,
+    getActiveSlots,
+   
 }
