@@ -242,6 +242,8 @@ const PatientRecord_Admin = () => {
             <p className="text-gray-500 text-center py-4">No visit data available</p>
           )}
         </SectionCard>
+
+        
       </div>
 
       {showEditOverviewModal && (

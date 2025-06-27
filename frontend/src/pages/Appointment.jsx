@@ -5,7 +5,6 @@ import { assets } from '../assets/assets'
 import RelatedDoctors from '../components/RelatedDoctors'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-
 const Appointment = () => {
 
     const { docId } = useParams()
@@ -75,8 +74,8 @@ const Appointment = () => {
                     })
                 }
 
-                // Increment current time by 30 minutes
-                currentDate.setMinutes(currentDate.getMinutes() + 30);
+                // Increment current time by 1 hour for 1-hour booking duration
+                currentDate.setHours(currentDate.getHours() + 1);
             }
 
             setDocSlots(prev => ([...prev, timeSlots]))
@@ -179,7 +178,7 @@ const Appointment = () => {
 
                 <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-20 py-3 rounded-full my-6'>Book an appointment</button>
             </div>
-
+           
             {/* Listing Releated Doctors */}
             <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
         </div>

@@ -5,9 +5,7 @@ import { assets } from '../../assets/assets'
 
 import { 
   FiCalendar, 
-  FiClock, 
-  FiDollarSign,
-  FiFileText
+   
 } from 'react-icons/fi'
 import Loading from '../../components/Loading'
 
@@ -16,7 +14,7 @@ const DoctorDashboard = () => {
   const { dToken, dashData, getDashData } = useContext(DoctorContext)
   const { slotDateFormat, calculateAge, currency } = useContext(AppContext)
 
-  useEffect(() => {
+  useEffect(() => { 
      if (dToken)   getDashData()
       console.log(dashData)
   }, [dToken])
@@ -41,6 +39,14 @@ const DoctorDashboard = () => {
             <p className='text-xl font-semibold text-gray-600'>{currency} {dashData.earnings}</p>
             <p className='text-gray-400'>Earnings</p>
           </div>
+         
+        </div>
+        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all' >
+          <img className='w-14' src={assets.appointments_icon} alt="" />
+          <div>
+            <p className='text-xl font-semibold text-gray-600'>{dashData.appointment.filter(item => item.isCompleted).length}</p>
+            <p className='text-gray-400'>Appointments completed</p>
+          </div>
         </div>
         <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
           <img className='w-14' src={assets.appointments_icon} alt="" />
@@ -48,6 +54,7 @@ const DoctorDashboard = () => {
             <p className='text-xl font-semibold text-gray-600'>{dashData.appointment.length}</p>
             <p className='text-gray-400'>Appointments</p>
           </div>
+
         </div>
         <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
           <img className='w-14' src={assets.patients_icon} alt="" />

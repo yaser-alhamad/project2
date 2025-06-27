@@ -6,13 +6,17 @@ import connectCloudinary from "./config/cloudinary.js"
 import userRouter from "./routes/userRoute.js"
 import doctorRouter from "./routes/doctorRoute.js"
 import adminRouter from "./routes/adminRoute.js"
+import { manageSlotDays } from "./utils/slotUtils.js"
+import cron from "node-cron"
 
 // app config
 const app = express()
 const port = process.env.PORT || 4000
 connectDB()
 connectCloudinary()
-
+//schedule the manageSlotDays function to run every day at 12:00 AM
+//cron.schedule('0 0 * * *', manageSlotDays)
+manageSlotDays()
 // middlewares
 app.use(express.json())
 app.use(cors())
@@ -21,6 +25,8 @@ app.use(cors())
 app.use("/api/user", userRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/doctor", doctorRouter)
+
+
 
 app.get("/", (req, res) => {
   res.send("API Working")

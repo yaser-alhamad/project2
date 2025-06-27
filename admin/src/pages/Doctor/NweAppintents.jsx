@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { DoctorContext } from '../../context/DoctorContext'
 import { AppContext } from '../../context/AppContext'
 import { useNavigate } from 'react-router-dom'
@@ -18,13 +18,19 @@ import { BsFileEarmarkPlus } from "react-icons/bs";
 const DoctorAppointments = () => {
   const navigate = useNavigate()
   const { dToken, newAppointments, getNewAppointments, cancelAppointment, completeAppointment } = useContext(DoctorContext)
-  const { slotDateFormat, calculateAge, currency } = useContext(AppContext)
+  const { slotDateFormat, calculateAge,  } = useContext(AppContext)
+
 
   useEffect(() => {
     if (dToken) getNewAppointments()
     console.log(newAppointments)
   }, [dToken ])
   if (!newAppointments || newAppointments.length === 0) {
+    if(newAppointments.length === 0){
+      return <div className='flex justify-center items-center h-screen w-full'>
+        <h1 className='text-2xl font-bold text-gray-500 italic'>No Appointments</h1>
+      </div>
+    }
     return <Loading />
   }
   return (
@@ -91,14 +97,14 @@ const DoctorAppointments = () => {
               {!item.cancelled ?(
                   <div className="flex justify-around items-center border-t  border-gray-100 pt-5 px-5 flex-wrap gap-3">
                     <button
-                      onClick={() => completeAppointment(item._id)}
+                      onClick={() => completeAppointment(item.id)}
                       className="flex justify-center w-auto items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                     >
                       <FiCheckCircle className="w-3 h-3 md:w-4 md:h-4" />
                       <span className='text-sm md:text-base'>Complete</span>
                     </button>
                     <button
-                      onClick={() => cancelAppointment(item._id)}
+                      onClick={() => cancelAppointment(item.id)}
                       className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                     >
                       <FiXCircle className="w-3 h-3 md:w-4 md:h-4" />

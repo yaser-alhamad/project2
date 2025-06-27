@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { DoctorContext } from './context/DoctorContext';
 import { AdminContext } from './context/AdminContext';
 import { Route, Routes } from 'react-router-dom'
@@ -8,7 +8,7 @@ import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Admin/Dashboard';
 import AllAppointments from './pages/Admin/AllAppointments';
-import AddDoctor from './pages/Admin/AddDoctor';
+
 import DoctorsList from './pages/Admin/DoctorsList';
 import Login from './pages/Login';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -20,6 +20,9 @@ import PatientRecord_Doctor from './pages/Doctor/PatientRecord_Doctor';
 import NewAppointments from './pages/Doctor/NweAppintents';
 import { AppContext } from './context/AppContext';
 import AddNewPatientRecord from './pages/Doctor/AddNewPatientRecord';
+import MangeSolts from './pages/Admin/MangeSolts';
+import MangeSolts_Doctor from './pages/Doctor/MangeSolts_Doctor';
+
 const App = () => {
   const { dToken } = useContext(DoctorContext)
   const { aToken } = useContext(AdminContext)
@@ -37,7 +40,7 @@ const App = () => {
           <Route path='/' element={<></>} />
           <Route path='/admin-dashboard' element={<Dashboard />} />
           <Route path='/all-appointments' element={<AllAppointments />} />
-          <Route path='/add-doctor' element={<AddDoctor />} />
+          
           <Route path='/doctor-list' element={<DoctorsList />} />
           <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
           <Route path='/doctor-profile' element={<DoctorProfile />} />
@@ -47,6 +50,8 @@ const App = () => {
           <Route path='/doctor/patientrecord_doctor/:id' element={<PatientRecord_Doctor />} />
           <Route path='/doctor/new-appointments' element={<NewAppointments />} />
           <Route path='/doctor/addnewpatientrecord/:id' element={<AddNewPatientRecord />} />
+          <Route path='/admin/manage-slots' element={<MangeSolts />} />
+          <Route path='/doctor/manage-slots_doctor' element={<MangeSolts_Doctor />} />
         </Routes>
         
       </div>

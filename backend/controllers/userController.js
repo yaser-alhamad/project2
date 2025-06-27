@@ -6,6 +6,7 @@ import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import stripe from "stripe";
+import { updateDoctorPerformanceData } from "./adminController.js";
 
 // Gateway Initialize
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -173,6 +174,9 @@ const bookAppointment = async (req, res) => {
 
     // save new slots data in docData
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+    
+    // Update doctor performance data
+    await updateDoctorPerformanceData();
 
     res.json({ success: true, message: "Appointment Booked" });
   } catch (error) {
@@ -208,6 +212,9 @@ const cancelAppointment = async (req, res) => {
     );
 
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+    
+    // Update doctor performance data
+    await updateDoctorPerformanceData();
 
     res.json({ success: true, message: "Appointment Cancelled" });
   } catch (error) {
