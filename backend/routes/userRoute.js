@@ -9,6 +9,7 @@ import {
   cancelAppointment,
   paymentStripe,
   verifyStripe,
+  getSlots
 } from "../controllers/userController.js";
 import upload from "../middleware/multer.js";
 import authUser from "../middleware/authUser.js";
@@ -29,5 +30,7 @@ userRouter.get("/appointments", authUser, listAppointment);
 userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 userRouter.post("/payment-stripe", authUser, paymentStripe);
 userRouter.post("/verifyStripe", authUser, verifyStripe);
+userRouter.post("/get-doctor-slots",authUser,getSlots)
+
 
 export default userRouter;

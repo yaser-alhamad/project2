@@ -8,7 +8,7 @@ const AppContextProvider = (props) => {
 
     const currencySymbol = '₹'
     const backendUrl = import.meta.env.VITE_BACKEND_URL
-
+    const [allSlots,setAllSlots]=useState([])
     const [doctors, setDoctors] = useState([])
     const [token, setToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : '')
     const [userData, setUserData] = useState(false)
@@ -51,6 +51,18 @@ const AppContextProvider = (props) => {
         }
 
     }
+    const fetchDoctoreSlots=async(docId)=>{
+        try {
+            const response = await axios.post(backendUrl+'/api/user/get-doctor-slots/',{docId},{ headers: { token } })
+            if (response.data.success) {
+                setAllSlots(response.data.slotsData || [])
+               
+            }
+        } catch (error) {
+            console.error("Error fetching active slots:", error)
+
+        }
+    }
 
     useEffect(() => {
         getDoctosData()
@@ -67,7 +79,8 @@ const AppContextProvider = (props) => {
         currencySymbol,
         backendUrl,
         token, setToken,
-        userData, setUserData, loadUserProfileData
+        userData, setUserData, loadUserProfileData,
+        fetchDoctoreSlots,allSlots
     }
 
     return (

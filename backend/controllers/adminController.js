@@ -367,31 +367,23 @@ const getSystemStatus = async (req, res) => {
 const generateSlots = async (req, res) => {
     try {
         const { doctorId } = req.body;
-        const startDate = new Date();
         const doctor = await doctorModel.findById(doctorId);
         
         if(!doctor){
             return res.json({ success: false, message: 'Doctor not found' });
         }
 
-        // Generate slots for the next day only
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const formattedDate = tomorrow.toISOString().split('T')[0];
-
-        // Skip Fridays
-        if (tomorrow.getDay() === 5) {
-            return res.json({ success: false, message: 'Cannot generate slots for Friday' });
-        }
-
-        // Check if slots already exist for this date
-        const existingSlots = await SoltsTable.findOne({ 
+        // Check if doctor already has any slots
+        const existingSlotsCount = await SoltsTable.countDocuments({ 
             doctorId, 
-            date: formattedDate 
+            isArchived: false 
         });
         
-        if (existingSlots) {
-            return res.json({ success: false, message: `Slots already exist for ${formattedDate}` });
+        if (existingSlotsCount > 0) {
+            return res.json({ 
+                success: false, 
+                message: 'Doctor already has slots.' 
+            });
         }
 
         const slotTimes = [
@@ -406,23 +398,49 @@ const generateSlots = async (req, res) => {
             "05:00 PM",
         ];
 
-        const newSlots = new SoltsTable({
-            doctorId,
-            date: formattedDate,
-            slots: slotTimes.map((time, index) => ({
-                slotId: `${formattedDate}-${index+1}`,
-                slotTime: time,
-                isBooked: false,
-                isAvailable: true
-            }))
-        });
+        let generatedDates = [];
+        let skippedDates = [];
 
-        await newSlots.save();
-        res.json({ 
-            success: true, 
-            message: `Slots for ${formattedDate} generated for doctor`,
-            date: formattedDate
-        });
+        // Generate slots for the next 30 days except Fridays
+        for (let i = 1; i <= 30; i++) {
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + i);
+            const formattedDate = targetDate.toISOString().split('T')[0];
+
+            // Skip Fridays (day 5)
+            if (targetDate.getDay() === 5) {
+                skippedDates.push(formattedDate);
+                continue;
+            }
+
+            // Create new slots for this date
+            const newSlots = new SoltsTable({
+                doctorId,
+                date: formattedDate,
+                slots: slotTimes.map((time, index) => ({
+                    slotId: `${formattedDate}-${index+1}`,
+                    slotTime: time,
+                    isBooked: false,
+                    isAvailable: true
+                }))
+            });
+
+            await newSlots.save();
+            generatedDates.push(formattedDate);
+        }
+
+        const response = {
+            success: true,
+            message: `Generated ${generatedDates.length} days of slots for doctor`,
+            generatedDates,
+            totalGenerated: generatedDates.length
+        };
+
+        if (skippedDates.length > 0) {
+            response.skippedFridays = skippedDates.length;
+        }
+
+        res.json(response);
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
