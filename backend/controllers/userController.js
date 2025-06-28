@@ -7,6 +7,7 @@ import appointmentModel from "../models/appointmentModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import stripe from "stripe";
 import { updateDoctorPerformanceData } from "./adminController.js";
+import SoltsTable from "../models/soltsTableModel.js";
 
 // Gateway Initialize
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -297,6 +298,16 @@ const verifyStripe = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+const getSlots = async (req, res) => {
+    try {
+        const { docId } = req.body
+        const slotsData = await SoltsTable.find({ doctorId: docId })
+        res.json({ success: true, slotsData })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message });
+    }
+}
 
 export {
   loginUser,
@@ -308,4 +319,5 @@ export {
   cancelAppointment,
   paymentStripe,
   verifyStripe,
+  getSlots
 };
