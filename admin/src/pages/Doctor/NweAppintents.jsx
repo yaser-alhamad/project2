@@ -9,8 +9,6 @@ import {
   FiClock,
   FiCheckCircle,
   FiXCircle,
-  FiFileText,
-  FiFilePlus,
 } from "react-icons/fi";
 import { FaFileMedical } from "react-icons/fa6";
 import { BsFileEarmarkPlus } from "react-icons/bs";

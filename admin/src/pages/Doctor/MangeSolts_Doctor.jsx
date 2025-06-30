@@ -1,4 +1,4 @@
-import {useContext, useEffect} from 'react'
+import {useContext, useEffect, useState} from 'react'
 import {DoctorContext} from '../../context/DoctorContext'
 import { FiCalendar, FiClock, FiCheckCircle, FiXCircle, FiRefreshCw, FiChevronLeft, FiChevronRight, FiAlertTriangle } from 'react-icons/fi'
 import { FaUserMd, FaRegCalendarAlt } from 'react-icons/fa'
@@ -6,7 +6,79 @@ import { toast } from 'react-toastify'
 
 const MangeSolts_Doctor = () => {
     const { dToken, changeSlotAvailability ,fetchActiveSlots,setAllSlots,allSlots} = useContext(DoctorContext)
+    const [currentWeekStart, setCurrentWeekStart] = useState(new Date())
     
+    // Helper: get start of week (Monday)
+    const getWeekStart = (date) => {
+        const d = new Date(date)
+        const day = d.getDay()
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Monday as start
+        return new Date(d.setDate(diff))
+    }
+
+    // Helper: get all available week starts from allSlots
+    const getAvailableWeeks = () => {
+        if (!allSlots.length) return []
+        const weeks = new Set()
+        allSlots.forEach(slotDay => {
+            const slotDate = new Date(slotDay.date)
+            const weekStart = getWeekStart(slotDate)
+            weeks.add(weekStart.toISOString().split('T')[0])
+        })
+        return Array.from(weeks).sort().map(dateStr => new Date(dateStr))
+    }
+
+    // Helper: navigate to next/prev week
+    const navigateWeek = (direction) => {
+        const availableWeeks = getAvailableWeeks()
+        if (availableWeeks.length === 0) return
+        const currentWeekStartStr = getWeekStart(currentWeekStart).toISOString().split('T')[0]
+        const currentIndex = availableWeeks.findIndex(week => week.toISOString().split('T')[0] === currentWeekStartStr)
+        let newIndex
+        if (currentIndex === -1) {
+            newIndex = 0
+        } else {
+            newIndex = currentIndex + direction
+            if (newIndex < 0) newIndex = availableWeeks.length - 1
+            if (newIndex >= availableWeeks.length) newIndex = 0
+        }
+        setCurrentWeekStart(availableWeeks[newIndex])
+    }
+
+    // Helper: can navigate to next/prev week
+    const canNavigate = (direction) => {
+        const availableWeeks = getAvailableWeeks()
+        if (availableWeeks.length <= 1) return false
+        const currentWeekStartStr = getWeekStart(currentWeekStart).toISOString().split('T')[0]
+        const currentIndex = availableWeeks.findIndex(week => week.toISOString().split('T')[0] === currentWeekStartStr)
+        if (currentIndex === -1) return true
+        const newIndex = currentIndex + direction
+        return newIndex >= 0 && newIndex < availableWeeks.length
+    }
+
+    // Helper: filter slots for current week
+    const getCurrentWeekSlots = () => {
+        if (!allSlots.length) return []
+        const weekStart = getWeekStart(currentWeekStart)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekEnd.getDate() + 6)
+        return allSlots.filter(slotDay => {
+            const slotDate = new Date(slotDay.date)
+            return slotDate >= weekStart && slotDate <= weekEnd
+        })
+    }
+
+    // Helper: get day status for highlighting
+    const getDayStatus = (slotDay) => {
+        if (!slotDay.slots || slotDay.slots.length === 0) return 'empty'
+        const available = slotDay.slots.filter(s => s.isAvailable && !s.isBooked).length
+        const booked = slotDay.slots.filter(s => s.isBooked).length
+        if (available === 0 && booked === 0) return 'unavailable'
+        if (booked > 0 && available === 0) return 'fully-booked'
+        if (booked > 0) return 'partially-booked'
+        return 'available'
+    }
+
     const formatDate = (dateString) => {
         const date = new Date(dateString)
         return date.toLocaleDateString('en-US', { 

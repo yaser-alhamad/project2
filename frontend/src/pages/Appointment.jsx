@@ -14,7 +14,6 @@ const Appointment = () => {
     currencySymbol,
     backendUrl,
     token,
-    getDoctosData,
     fetchDoctoreSlots,
     allSlots,
   } = useContext(AppContext);
@@ -74,31 +73,25 @@ const Appointment = () => {
       return navigate("/login");
     }
 
-    if (!selectedSlot || !selectedDate) {
+    if (!selectedSlot || !selectedDay) {
       toast.error("Please select a slot and date");
       return;
     }
-
-    const date = new Date(selectedDate);
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-    const slotDate = day + "_" + month + "_" + year;
-
+   
     try {
       const { data } = await axios.post(
         backendUrl + "/api/user/book-appointment",
         {
           docId,
-          slotDate,
-          slotTime: selectedSlot.slotTime,
+          dayId: selectedDay._id,
+          slotId: selectedSlot._id,
         },
         { headers: { token } }
       );
 
       if (data.success) {
         toast.success(data.message);
-        getDoctosData();
+        // Optionally refresh doctor data or slots
         navigate("/my-appointments");
       } else {
         toast.error(data.message);
