@@ -23,7 +23,7 @@ const AppContextProvider = (props) => {
         if (dateArray.length !== 3) {
             return 'Invalid Date';
         }
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
+        return dateArray[0] + " " + months[Number(dateArray[1])-1] + " " + dateArray[2];
     }
 
     // Function to calculate the age eg. ( 20_01_2000 => 24 )
