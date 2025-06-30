@@ -108,7 +108,7 @@ const MyAppointments = () => {
           >
             <div>
               <img
-                className="w-36 bg-[#EAEFFF]"
+                className="w-36 bg-[#0d948833]"
                 src={item.docData.image}
                 alt=""
               />
@@ -157,7 +157,7 @@ const MyAppointments = () => {
                   </button>
                 )}
               {!item.cancelled && item.payment && !item.isCompleted && (
-                <button className="sm:min-w-48 py-2 border rounded text-[#696969]  bg-[#EAEFFF]">
+                <button className="sm:min-w-48 py-2 border rounded text-[#696969]  bg-[#0d948833]">
                   Paid
                 </button>
               )}
