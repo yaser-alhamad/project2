@@ -1,6 +1,6 @@
 import {useContext, useEffect} from 'react'
 import {DoctorContext} from '../../context/DoctorContext'
-import { FiCalendar, FiClock, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi'
+import { FiCalendar, FiClock, FiCheckCircle, FiXCircle, FiRefreshCw, FiChevronLeft, FiChevronRight, FiAlertTriangle } from 'react-icons/fi'
 import { FaUserMd, FaRegCalendarAlt } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
@@ -104,6 +104,7 @@ const MangeSolts_Doctor = () => {
     };
     
     const stats = getSlotStats();
+    const currentWeekSlots = getCurrentWeekSlots();
 
     return (
         <div className="w-full min-h-screen bg-gray-50">
@@ -184,6 +185,68 @@ const MangeSolts_Doctor = () => {
 
             {/* Main Content */}
             <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+                {/* Week Navigation */}
+                {allSlots.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                            <div className="flex items-center justify-between sm:justify-start space-x-4">
+                                <button
+                                    onClick={() => navigateWeek(-1)}
+                                    disabled={!canNavigate(-1)}
+                                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <FiChevronLeft className="w-5 h-5 text-gray-600" />
+                                </button>
+                                
+                                <div className="text-center sm:text-left">
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        {currentWeekStart.toLocaleDateString('en-US', { 
+                                            month: 'long', 
+                                            year: 'numeric' 
+                                        })}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                        Week of {getWeekStart(currentWeekStart).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                        })} - {new Date(getWeekStart(currentWeekStart).getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                        })}
+                                    </p>
+                                </div>
+                                
+                                <button
+                                    onClick={() => navigateWeek(1)}
+                                    disabled={!canNavigate(1)}
+                                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <FiChevronRight className="w-5 h-5 text-gray-600" />
+                                </button>
+                            </div>
+
+                            {/* Week Summary */}
+                            <div className="flex items-center space-x-4 text-sm">
+                                <div className="flex items-center space-x-2">
+                                    <FiCalendar className="w-4 h-4 text-teal-600" />
+                                    <span className="font-medium text-gray-700">
+                                        {currentWeekSlots.length} days with slots
+                                    </span>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                    <FiCheckCircle className="w-4 h-4 text-green-600" />
+                                    <span className="text-green-700">
+                                        {currentWeekSlots.reduce((acc, day) => 
+                                            acc + (day.slots?.filter(s => s.isAvailable && !s.isBooked).length || 0), 0
+                                        )} available this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Slots Display */}
                 <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {allSlots.length === 0 ? (
@@ -197,71 +260,113 @@ const MangeSolts_Doctor = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
-                                {allSlots.map((slotDay) => (
-                                    <div
-                                        key={slotDay._id}
-                                        className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                                    >
-                                        <div className="bg-teal-600 px-6 py-4">
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                                                <h3 className="text-lg font-semibold flex items-center text-white">
-                                                    <FiCalendar className="mr-2 text-teal-200" />
-                                                    {formatDate(slotDay.date)}
-                                                </h3>
-                                                <div className="flex space-x-2 text-xs mt-2 sm:mt-0">
-                                                    <span className="px-3 py-1 bg-white/20 rounded-full text-white">
-                                                        {slotDay.slots?.filter((s) => s.isAvailable && !s.isBooked).length || 0} Available
-                                                    </span>
-                                                    <span className="px-3 py-1 bg-white/20 rounded-full text-white">
-                                                        {slotDay.slots?.filter((s) => s.isBooked).length || 0} Booked
-                                                    </span>
+                        <div className="max-h-[calc(100vh-400px)] overflow-y-auto">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 p-4 lg:p-6">
+                                {currentWeekSlots.map((slotDay) => {
+                                    const dayStatus = getDayStatus(slotDay)
+                                    
+                                    return (
+                                        <div
+                                            key={slotDay._id}
+                                            className={`
+                                                bg-gray-50 rounded-xl border-2 overflow-hidden hover:shadow-md transition-all duration-200
+                                                ${dayStatus === 'empty' ? 'border-gray-200' :
+                                                    dayStatus === 'unavailable' ? 'border-red-200 bg-red-50' :
+                                                    dayStatus === 'fully-booked' ? 'border-amber-200 bg-amber-50' :
+                                                    dayStatus === 'partially-booked' ? 'border-orange-200 bg-orange-50' :
+                                                    'border-green-200 bg-green-50'
+                                                }
+                                            `}
+                                        >
+                                            <div className={`
+                                                px-4 py-3
+                                                ${dayStatus === 'empty' ? 'bg-gray-600' :
+                                                    dayStatus === 'unavailable' ? 'bg-red-600' :
+                                                    dayStatus === 'fully-booked' ? 'bg-amber-600' :
+                                                    dayStatus === 'partially-booked' ? 'bg-orange-600' :
+                                                    'bg-green-600'
+                                                }
+                                            `}>
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                                                    <h3 className="text-base font-semibold flex items-center text-white">
+                                                        <FiCalendar className="mr-2 text-white/80" />
+                                                        {formatDate(slotDay.date)}
+                                                    </h3>
+                                                    
+                                                    {/* Status indicator */}
+                                                    {dayStatus !== 'available' && (
+                                                        <div className="flex items-center mt-2 sm:mt-0">
+                                                            {dayStatus === 'unavailable' && (
+                                                                <FiXCircle className="w-4 h-4 text-red-200 mr-1" />
+                                                            )}
+                                                            {dayStatus === 'fully-booked' && (
+                                                                <FiClock className="w-4 h-4 text-amber-200 mr-1" />
+                                                            )}
+                                                            {dayStatus === 'partially-booked' && (
+                                                                <FiAlertTriangle className="w-4 h-4 text-orange-200 mr-1" />
+                                                            )}
+                                                            <span className="text-xs text-white/90 font-medium">
+                                                                {dayStatus === 'unavailable' ? 'No slots' :
+                                                                dayStatus === 'fully-booked' ? 'Fully booked' :
+                                                                dayStatus === 'partially-booked' ? 'Partially booked' : 'Available'}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="p-4">
-                                            {slotDay.slots && slotDay.slots.length > 0 ? (
-                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                                    {slotDay.slots.map((slot) => (
-                                                        <div
-                                                            key={slot._id}
-                                                            className={`
-                                                                px-3 py-2 rounded-lg border-2 flex justify-between items-center cursor-pointer text-sm font-medium transition-all duration-200
-                                                                ${slot.isBooked
-                                                                    ? 'bg-amber-50 border-amber-200 cursor-not-allowed text-amber-700'
-                                                                    : !slot.isAvailable
-                                                                    ? 'bg-gray-50 border-gray-200 text-gray-500'
-                                                                    : 'bg-green-50 border-green-200 hover:border-green-300 hover:bg-green-100 text-green-700 hover:shadow-sm'
+                                            <div className="p-3">
+                                                {slotDay.slots && slotDay.slots.length > 0 ? (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                                        {slotDay.slots.map((slot) => (
+                                                            <div
+                                                                key={slot._id}
+                                                                className={`
+                                                                    px-2 py-1.5 rounded-md border text-xs font-medium flex justify-between items-center cursor-pointer transition-all duration-200
+                                                                    ${slot.isBooked
+                                                                        ? 'bg-amber-100 border-amber-300 cursor-not-allowed text-amber-800'
+                                                                        : !slot.isAvailable
+                                                                        ? 'bg-gray-100 border-gray-300 text-gray-600'
+                                                                        : 'bg-green-100 border-green-300 hover:border-green-400 hover:bg-green-200 text-green-800'
+                                                                    }
+                                                                `}
+                                                                onClick={() =>
+                                                                    !slot.isBooked && handelchangeSlotAvailability(slot._id, slotDay._id)
                                                                 }
-                                                            `}
-                                                            onClick={() =>
-                                                                !slot.isBooked && handelchangeSlotAvailability(slot._id, slotDay._id)
-                                                            }
-                                                        >
-                                                            <span>{formatTime(slot.slotTime)}</span>
-                                                            <span className={`
-                                                                w-3 h-3 rounded-full
-                                                                ${slot.isBooked
-                                                                    ? 'bg-amber-500'
-                                                                    : !slot.isAvailable
-                                                                    ? 'bg-gray-400'
-                                                                    : 'bg-green-500'
-                                                                }
-                                                            `}></span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center h-16">
-                                                    <p className="text-gray-500 text-sm">No time slots available</p>
-                                                </div>
-                                            )}
+                                                                title={slot.isBooked ? 'Booked' : !slot.isAvailable ? 'Unavailable' : 'Click to toggle availability'}
+                                                            >
+                                                                <span className="truncate">{formatTime(slot.slotTime)}</span>
+                                                                <span className={`
+                                                                    w-2 h-2 rounded-full flex-shrink-0 ml-1
+                                                                    ${slot.isBooked
+                                                                        ? 'bg-amber-500'
+                                                                        : !slot.isAvailable
+                                                                        ? 'bg-gray-400'
+                                                                        : 'bg-green-500'
+                                                                    }
+                                                                `}></span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-12">
+                                                        <p className="text-gray-500 text-sm">No time slots</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
+                            
+                            {/* Empty week message */}
+                            {currentWeekSlots.length === 0 && (
+                                <div className="p-12 text-center">
+                                    <FiCalendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <h3 className="text-lg font-medium text-gray-600 mb-1">No slots this week</h3>
+                                    <p className="text-gray-500 text-sm">Use the navigation arrows to view other weeks</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
