@@ -5,7 +5,7 @@ import { assets } from "../assets/assets";
 import RelatedDoctors from "../components/RelatedDoctors";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FiCalendar } from "react-icons/fi";
+import { FiCalendar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const Appointment = () => {
   const { docId } = useParams();
@@ -23,6 +23,7 @@ const Appointment = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
 
   const navigate = useNavigate();
 
@@ -44,14 +45,6 @@ const Appointment = () => {
   const formatDayNumber = (dateString) => {
     const date = new Date(dateString);
     return date.getDate();
-  };
-
-  const formatMonthYear = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
   };
 
   const getWeekdayName = (dateString) => {
@@ -166,49 +159,101 @@ const Appointment = () => {
     return { available, booked, total };
   };
 
-  const groupSlotsByMonth = () => {
-    if (!allSlots || allSlots.length === 0) return [];
-
-    const grouped = {};
-    allSlots.forEach((day) => {
-      const monthKey = formatMonthYear(day.date);
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = [];
-      }
-      grouped[monthKey].push(day);
-    });
-
-    return Object.entries(grouped).map(([month, days]) => ({
-      month,
-      days: days.sort((a, b) => new Date(a.date) - new Date(b.date)),
-    }));
-  };
-
-  const getCalendarDays = (monthDays) => {
-    if (!monthDays || monthDays.length === 0) return [];
-
-    // Only include days that have available slots
-    const availableDays = monthDays.filter((day) => {
-      const dayStats = getDayStats(day);
-      return dayStats.available > 0;
-    });
-
-    if (availableDays.length === 0) return [];
+  // Get current week days for calendar display
+  const getCurrentWeekDays = () => {
+    const currentWeekSlots = getCurrentWeekSlots();
+    if (!currentWeekSlots || currentWeekSlots.length === 0) return [];
 
     const days = [];
-
-    // Add only available days
-    availableDays.forEach((day) => {
-      days.push({
-        date: new Date(day.date),
-        isEmpty: false,
-        data: day,
-        dayNumber: formatDayNumber(day.date),
-        weekday: getWeekdayName(day.date),
-      });
+    currentWeekSlots.forEach((day) => {
+      const dayStats = getDayStats(day);
+      if (dayStats.available > 0) {
+        days.push({
+          date: new Date(day.date),
+          isEmpty: false,
+          data: day,
+          dayNumber: formatDayNumber(day.date),
+          weekday: getWeekdayName(day.date),
+        });
+      }
     });
 
     return days;
+  };
+
+  // Calculate week start (Monday)
+  const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    return new Date(d.setDate(diff));
+  };
+
+  // Get all available weeks from slot data
+  const getAvailableWeeks = () => {
+    if (!allSlots || allSlots.length === 0) return [];
+    
+    const weeks = new Set();
+    allSlots.forEach(slotDay => {
+      const slotDate = new Date(slotDay.date);
+      const weekStart = getWeekStart(slotDate);
+      weeks.add(weekStart.toISOString().split('T')[0]); // Store as YYYY-MM-DD string
+    });
+    
+    return Array.from(weeks).sort().map(dateStr => new Date(dateStr));
+  };
+
+  // Navigate to next/previous week with data
+  const navigateWeek = (direction) => {
+    const availableWeeks = getAvailableWeeks();
+    if (availableWeeks.length === 0) return;
+    
+    const currentWeekStartStr = getWeekStart(currentWeekStart).toISOString().split('T')[0];
+    const currentIndex = availableWeeks.findIndex(week => 
+      week.toISOString().split('T')[0] === currentWeekStartStr
+    );
+    
+    let newIndex;
+    if (currentIndex === -1) {
+      // Current week not in data, go to first available week
+      newIndex = 0;
+    } else {
+      newIndex = currentIndex + direction;
+      if (newIndex < 0) newIndex = availableWeeks.length - 1;
+      if (newIndex >= availableWeeks.length) newIndex = 0;
+    }
+    
+    setCurrentWeekStart(availableWeeks[newIndex]);
+  };
+
+  // Check if navigation is possible
+  const canNavigate = (direction) => {
+    const availableWeeks = getAvailableWeeks();
+    if (availableWeeks.length <= 1) return false;
+    
+    const currentWeekStartStr = getWeekStart(currentWeekStart).toISOString().split('T')[0];
+    const currentIndex = availableWeeks.findIndex(week => 
+      week.toISOString().split('T')[0] === currentWeekStartStr
+    );
+    
+    if (currentIndex === -1) return true;
+    
+    const newIndex = currentIndex + direction;
+    return newIndex >= 0 && newIndex < availableWeeks.length;
+  };
+
+  // Filter slots for current week
+  const getCurrentWeekSlots = () => {
+    if (!allSlots || allSlots.length === 0) return [];
+    
+    const weekStart = getWeekStart(currentWeekStart);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    return allSlots.filter(slotDay => {
+      const slotDate = new Date(slotDay.date);
+      return slotDate >= weekStart && slotDate <= weekEnd;
+    });
   };
 
   useEffect(() => {
@@ -303,96 +348,151 @@ const Appointment = () => {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Week Navigation */}
+              {allSlots.length > 0 && (
+                <div className="bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-200 rounded-lg p-4 mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <div className="flex items-center justify-between sm:justify-start space-x-4">
+                      <button
+                        onClick={() => navigateWeek(-1)}
+                        disabled={!canNavigate(-1)}
+                        className="p-2 rounded-lg bg-white hover:bg-teal-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-teal-200"
+                      >
+                        <FiChevronLeft className="w-5 h-5 text-teal-600" />
+                      </button>
+                      
+                      <div className="text-center sm:text-left">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {currentWeekStart.toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            year: 'numeric' 
+                          })}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Week of {getWeekStart(currentWeekStart).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })} - {new Date(getWeekStart(currentWeekStart).getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={() => navigateWeek(1)}
+                        disabled={!canNavigate(1)}
+                        className="p-2 rounded-lg bg-white hover:bg-teal-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-teal-200"
+                      >
+                        <FiChevronRight className="w-5 h-5 text-teal-600" />
+                      </button>
+                    </div>
+
+                    {/* Week Summary */}
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <FiCalendar className="w-4 h-4 text-teal-600" />
+                        <span className="font-medium text-gray-700">
+                          {getCurrentWeekSlots().length} days with slots
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700">
+                          {getCurrentWeekSlots().reduce((acc, day) => 
+                            acc + (day.slots?.filter(s => s.isAvailable && !s.isBooked).length || 0), 0
+                          )} available this week
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Days Selection */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   Select a Date:
                 </h3>
-                {groupSlotsByMonth().map((monthData, monthIndex) => {
-                  const availableDays = getCalendarDays(monthData.days);
-                  if (availableDays.length === 0) return null;
+                
+                {/* Current Week Calendar */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-gray-700 mb-3 text-center">
+                    {currentWeekStart.toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
+                  </h4>
 
-                  return (
-                    <div key={monthIndex} className="mb-8">
-                      <h4 className="text-lg font-semibold text-gray-700 mb-3 text-center">
-                        {monthData.month}
-                      </h4>
-
-                      {/* Calendar Header */}
-                      <div className="grid grid-cols-7 gap-1 mb-2">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                          (day) => (
-                            <div
-                              key={day}
-                              className="text-center text-xs font-medium text-gray-500 py-2"
-                            >
-                              {day}
-                            </div>
-                          )
-                        )}
-                      </div>
-
-                      {/* Calendar Grid */}
-                      <div className="grid grid-cols-7 gap-1">
-                        {availableDays.map((day, dayIndex) => {
-                          const dayStats = getDayStats(day.data);
-                          const isSelected = selectedDay?._id === day.data._id;
-
-                          return (
-                            <div
-                              key={dayIndex}
-                              className={`
-                                                                h-14 rounded-xl border-2 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden
-                                                                ${
-                                                                  isSelected
-                                                                    ? "border-teal-500 bg-gradient-to-br from-teal-50 to-indigo-50 shadow-lg shadow-teal-200/50 transform scale-105"
-                                                                    : "border-gray-200 bg-white hover:border-teal-300 hover:bg-gradient-to-br hover:from-teal-50 hover:to-indigo-50 hover:shadow-md hover:shadow-teal-100/50 hover:transform hover:scale-105"
-                                                                }
-                                                            `}
-                              onClick={() => handleDaySelect(day.data)}
-                            >
-                              {/* Selection indicator */}
-                              {isSelected && (
-                                <div className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
-                              )}
-
-                              <div
-                                className={`text-sm font-semibold ${
-                                  isSelected ? "text-teal-700" : "text-gray-700"
-                                }`}
-                              >
-                                {day.dayNumber}
-                              </div>
-                              <div
-                                className={`text-xs font-medium ${
-                                  isSelected
-                                    ? "text-teal-600"
-                                    : "text-emerald-600"
-                                }`}
-                              >
-                                {dayStats.available} slots
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Calendar Legend */}
-                      {/* <div className="flex justify-center space-x-6 mt-4 text-xs text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm"></div>
-                          <span>Available</span>
+                  {/* Calendar Header */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      (day) => (
+                        <div
+                          key={day}
+                          className="text-center text-xs font-medium text-gray-500 py-2"
+                        >
+                          {day}
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-gradient-to-br from-teal-50 to-indigo-50 border-2 border-purple-500 rounded-lg shadow-sm relative">
-                            <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                      )
+                    )}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {getCurrentWeekDays().map((day, dayIndex) => {
+                      const dayStats = getDayStats(day.data);
+                      const isSelected = selectedDay?._id === day.data._id;
+
+                      return (
+                        <div
+                          key={dayIndex}
+                          className={`
+                            h-14 rounded-xl border-2 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden
+                            ${
+                              isSelected
+                                ? "border-teal-500 bg-gradient-to-br from-teal-50 to-indigo-50 shadow-lg shadow-teal-200/50 transform scale-105"
+                                : "border-gray-200 bg-white hover:border-teal-300 hover:bg-gradient-to-br hover:from-teal-50 hover:to-indigo-50 hover:shadow-md hover:shadow-teal-100/50 hover:transform hover:scale-105"
+                            }
+                          `}
+                          onClick={() => handleDaySelect(day.data)}
+                        >
+                          {/* Selection indicator */}
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
+                          )}
+
+                          <div
+                            className={`text-sm font-semibold ${
+                              isSelected ? "text-teal-700" : "text-gray-700"
+                            }`}
+                          >
+                            {day.dayNumber}
                           </div>
-                          <span>Selected</span>
+                          <div
+                            className={`text-xs font-medium ${
+                              isSelected
+                                ? "text-teal-600"
+                                : "text-emerald-600"
+                            }`}
+                          >
+                            {dayStats.available} slots
+                          </div>
                         </div>
-                      </div> */}
+                      );
+                    })}
+                  </div>
+
+                  {/* Empty week message */}
+                  {getCurrentWeekDays().length === 0 && (
+                    <div className="p-8 text-center">
+                      <FiCalendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-600 mb-1">No available slots this week</h3>
+                      <p className="text-gray-500 text-sm">Use the navigation arrows to view other weeks</p>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
 
               {/* Slots for Selected Day */}
@@ -407,18 +507,17 @@ const Appointment = () => {
                         <div
                           key={slot._id}
                           className={`
-                                                        p-3 rounded-lg border-2 text-center transition-all duration-200
-                                                        ${
-                                                          slot.isBooked
-                                                            ? "bg-red-50 border-red-200 cursor-not-allowed text-red-700"
-                                                            : !slot.isAvailable
-                                                            ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
-                                                            : selectedSlot?._id ===
-                                                              slot._id
-                                                            ? "bg-green-50 border-green-400 text-green-700 shadow-md"
-                                                            : "bg-white border-gray-200 hover:border-green-300 hover:bg-green-50 text-gray-700 hover:text-green-700 cursor-pointer hover:shadow-sm"
-                                                        }
-                                                    `}
+                            p-3 rounded-lg border-2 text-center transition-all duration-200
+                            ${
+                              slot.isBooked
+                                ? "bg-red-50 border-red-200 cursor-not-allowed text-red-700"
+                                : !slot.isAvailable
+                                ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
+                                : selectedSlot?._id === slot._id
+                                ? "bg-green-50 border-green-400 text-green-700 shadow-md"
+                                : "bg-white border-gray-200 hover:border-green-300 hover:bg-green-50 text-gray-700 hover:text-green-700 cursor-pointer hover:shadow-sm"
+                            }
+                          `}
                           onClick={() =>
                             !slot.isBooked &&
                             slot.isAvailable &&

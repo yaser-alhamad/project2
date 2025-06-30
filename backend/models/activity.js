@@ -6,7 +6,7 @@ const activitySchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['New Doctor', 'Appointment', 'System', 'Revenue', 'Patient']
+    enum: ['New Doctor', 'Appointment', 'System', 'Revenue', 'Patient', 'Slot Management']
   },
   message: {
     type: String,
