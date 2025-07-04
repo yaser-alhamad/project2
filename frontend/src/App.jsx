@@ -16,7 +16,7 @@ import Verify from './pages/Verify'
 
 const App = () => {
   return (
-    <div className='mx-4 sm:mx-[10%]'>
+    <div className='px-4'>
       <ToastContainer />
       <Navbar />
       <Routes>
