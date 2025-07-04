@@ -3,28 +3,32 @@ import { assets } from '../assets/assets'
 
 const Header = () => {
     return (
-        <div className='flex flex-col md:flex-row flex-wrap bg-primary rounded-lg px-6 md:px-10 lg:px-20 '>
-
+        <header className="relative flex flex-col md:flex-row flex-wrap bg-gradient-to-tr from-cyan-500 via-blue-500 to-blue-300 rounded-3xl px-8 md:px-16 py-6 md:py-10 overflow-hidden shadow-lg">
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none z-0" />
             {/* --------- Header Left --------- */}
-            <div className='md:w-1/2 flex flex-col items-start justify-center gap-4 py-10 m-auto md:py-[10vw] md:mb-[-30px]'>
-                <p className='text-3xl md:text-4xl lg:text-5xl text-white font-semibold leading-tight md:leading-tight lg:leading-tight'>
+            <div className="md:w-1/2 flex flex-col items-start justify-center gap-4 py-4 md:py-0 z-10">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl text-blue-900 font-extrabold leading-tight mb-4 drop-shadow-lg">
                     Book Appointment <br />  With Trusted Doctors
-                </p>
-                <div className='flex flex-col md:flex-row items-center gap-3 text-white text-sm font-light'>
-                    <img className='w-28' src={assets.group_profiles} alt="" />
-                    <p>Simply browse through our extensive list of trusted doctors, <br className='hidden sm:block' /> schedule your appointment hassle-free.</p>
+                </h1>
+                <div className="flex flex-col md:flex-row items-center gap-4 text-blue-900 text-base font-light mb-2">
+                    <img className="w-32" src={assets.group_profiles} alt="Group of doctors" />
+                    <p>Simply browse through our extensive list of trusted doctors, <br className="hidden sm:block" /> schedule your appointment hassle-free.</p>
                 </div>
-                <a href='#speciality' className='flex items-center gap-2 bg-white px-8 py-3 rounded-full text-[#595959] text-sm m-auto md:m-0 hover:scale-105 transition-all duration-300'>
-                    Book appointment <img className='w-3' src={assets.arrow_icon} alt="" />
-                </a>
+                <button type="button" onClick={() => document.getElementById('speciality').scrollIntoView({behavior: 'smooth'})} className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 px-10 py-4 rounded-full text-white text-lg font-semibold shadow-lg transition-transform duration-300 hover:scale-105 focus:outline-blue-700">
+                    Book appointment <img className="w-4" src={assets.arrow_icon} alt="Arrow icon" />
+                </button>
             </div>
-
             {/* --------- Header Right --------- */}
-            <div className='md:w-1/2 relative'>
-                <img className='w-full md:absolute bottom-0 h-auto rounded-lg' src={assets.header_img} alt="" />
+            <div className="md:w-1/2 relative flex items-center justify-center z-10">
+                <img className="w-full max-w-md md:absolute bottom-0 h-auto rounded-2xl shadow-2xl animate-float" src={assets.header_img} alt="Doctor illustration" />
             </div>
-        </div>
+        </header>
     )
 }
 
 export default Header
+// Add the following to your global CSS (e.g., index.css or tailwind.config.js):
+// .animate-float { animation: float 6s ease-in-out infinite; }
+// @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+
