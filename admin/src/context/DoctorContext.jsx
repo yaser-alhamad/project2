@@ -83,10 +83,10 @@ const DoctorContextProvider = (props) => {
         }
     }
     //add patient record
-    const addPatientRecord = async () => {
+    const addPatientRecord = async (patientId, Record) => {
         try {
           
-            const { data } = await axios.post(backendUrl + '/api/doctor/add-patient-record', {a:1}, { headers: { dToken } })
+            const { data } = await axios.post(backendUrl + '/api/doctor/add-patient-record', {patientId, Record}, { headers: { dToken } })
             if (data.success) {
                 toast.success(data.message)
             } else {
@@ -153,16 +153,12 @@ const DoctorContextProvider = (props) => {
     // Getting Doctor dashboard data using API
     const getDashData = async () => {
         try {
-          
             const { data } = await axios.get(backendUrl + '/api/doctor/dashboard', { headers: { dToken } })
-            
             if (data.success) {
-                setDashData(data.Data)
-               
+                setDashData(data.Data) 
             } else {
                 toast.error(data.message)
             }
-
         } catch (error) {
             console.log(error)
             toast.error(error.message)
@@ -198,7 +194,28 @@ const DoctorContextProvider = (props) => {
 
         }
     }
-
+    const createPatientRecord = async (patientId, recordData) => {
+        try {
+            const { data } = await axios.post(
+                backendUrl + '/api/doctor/add-patient-record',
+                {
+                    patientId,
+                    record: recordData
+                },
+                { headers: { dToken } }
+            );
+            if (data.success) {
+                toast.success(data.message );
+                return data;
+            } else {
+                toast.error(data.message );
+                
+            }
+        } catch (error) {
+            toast.error(error.message);
+          
+        }
+    };
     const value = {
         dToken, setDToken, backendUrl,
         appointments,
@@ -218,7 +235,8 @@ const DoctorContextProvider = (props) => {
         changeSlotAvailability,
         allSlots,
         setAllSlots,
-        fetchActiveSlots
+        fetchActiveSlots,
+        createPatientRecord
     }
 
     return (

@@ -5,7 +5,6 @@ import {
   FiCalendar,
   FiDollarSign,
   FiSettings,
-  FiPieChart,
 } from "react-icons/fi";
 import {
   FaUserMd,
@@ -275,14 +274,14 @@ const Dashboard = () => {
                       <div className="relative">
                         <img
                           className="w-12 h-12 rounded-full object-cover border-2 border-blue-200"
-                          src={item.docData.image}
-                          alt={item.docData.name}
+                          src={item.docData?.image || "/placeholder-doctor.jpg"}
+                          alt={item.docData?.name || "Doctor"}
                         />
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900">
-                          Dr. {item.docData.name}
+                          Dr. {item.docData?.name || "Unknown Doctor"}
                         </div>
                         <div className="text-xs text-[#0d9488] font-medium">
                           Doctor
@@ -293,11 +292,11 @@ const Dashboard = () => {
                     {/* Patient Info */}
                     <div className="flex items-center space-x-4 w-1/4">
                       <div className="w-10 h-10 rounded-full bg-[#0d948833] flex items-center justify-center text-[#0d9f92] font-bold">
-                        {getNameInitial(item.userData.name)}
+                        {getNameInitial(item.userData?.name)}
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900">
-                          {item.userData.name}
+                          {item.userData?.name || "Unknown"}
                         </div>
                         <div className="text-xs text-green-600 font-medium">
                           Patient

@@ -35,15 +35,45 @@ const loginAdmin = async (req, res) => {
 // API to get all appointments list
 const appointmentsAdmin = async (req, res) => {
     try {
-
-        const appointments = await appointmentModel.find({})
-        res.json({ success: true, appointments })
-
+        const appointments = await appointmentModel.find({});
+        // For each appointment, fetch doctor, patient record, and user info
+        const detailedAppointments = await Promise.all(appointments.map(async (appointment) => {
+            // Get doctor info
+            const doctorInfo = await doctorModel.findById(appointment.docId).select('name email speciality degree experience image');
+            // Get user info (the user who booked the appointment)
+            const userInfoRaw = await userModel.findById(appointment.userId).select('name email phone address dob patients');
+            // Only include specific fields in userInfo
+            let userInfo = null;
+            if (userInfoRaw) {
+                userInfo = {
+                    _id: userInfoRaw._id,
+                    name: userInfoRaw.name,
+                    phone: userInfoRaw.phone,
+                    address: userInfoRaw.address,
+                    dob: userInfoRaw.dob,
+                    email: userInfoRaw.email
+                };
+            }
+            // Find patientInfo using patient in userInfoRaw.patients
+            let patientInfo = null;
+            if (userInfoRaw && userInfoRaw.patients && userInfoRaw.patients.length > 0 && appointment.patientId) {
+                patientInfo = userInfoRaw.patients.find(
+                    (p) => p._id && p._id.toString() === appointment.patientId.toString()
+                );
+            }
+            return {
+                ...appointment.toObject(),
+                doctorInfo,
+                patientInfo,
+                userInfo
+            };
+        }));
+        
+        res.json({ success: true, appointments: detailedAppointments });
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 //API to get all patients list
 const allPatientsRecord = async (req, res) => {

@@ -8,10 +8,23 @@ const AppContextProvider = (props) => {
 
     const currencySymbol = '₹'
     const backendUrl = import.meta.env.VITE_BACKEND_URL
-    const [allSlots,setAllSlots]=useState([])
+    const [allSlots, setAllSlots] = useState([])
     const [doctors, setDoctors] = useState([])
-    const [token, setToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : '')
+    const [token, setToken] = useState(() => {
+        const storedToken = localStorage.getItem('token')
+        return storedToken && storedToken.trim() !== '' ? storedToken : ''
+    })
     const [userData, setUserData] = useState(false)
+
+
+
+    
+    useEffect(() => {
+        // This effect is just a placeholder to show where you might handle server-down logic.
+        // In your API calls, if you catch a network/server error, you should call:
+        // localStorage.removeItem('token'); setToken('');
+        // For example, in your catch blocks in API calls.
+    }, [])
 
     // Getting Doctors using API
     const getDoctosData = async () => {

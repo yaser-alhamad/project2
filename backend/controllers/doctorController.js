@@ -42,116 +42,53 @@ const getPatientRecord = async (req, res) => {
         res.json({ success: true, patientRecord })
     } catch (error) {
         console.log(error)
-      
         res.json({ success: false, message: error.message })
     }
 }
 //API to add patient record
 const addPatientRecord = async (req, res) => {
     try {
-        const {docId } = req.body;
-      
-      // const { docId, userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = req.body;
-      
-        const { userId, name, date_of_birth, gender, contact, medical_history, medications, allergies, immunizations, visits } = {
-       
-        userId: "67890",
-        name: "John Doe",
-        date_of_birth: "1990-01-01",
-        gender: "Male",
-        contact: {
-            phone: "123-456-7890",
-            address: {
-                line1: "123 Main St",
-                line2: "Apt 4B"
-            }
-        },
-        medical_history: ["Hypertension", "Diabetes"],
-        medications: [
-            {
-                name: "Metformin",
-                dosage: "500mg",
-                frequency: "Twice a day"
-            },
-            {
-                name: "Aspirin",
-                dosage: "100mg",
-                frequency: "Once a day"
-            }
-        ],
-        allergies: ["Penicillin"],
-       immunizations: [
-        {
-            vaccine: "COVID-19 mRNA",
-            doses: 2,
-            date: "2022-01-01"
-        },
-       {
-        vaccine: "Influenza ",
-        doses: 1,
-        date: "2022-01-01"
-       }
-       ],
-        visits: [
-            {
-                date: "2023-01-15",
-                reason: "Routine check-up",
-                doctor_name: "John Doe",
-                doctor_id: docId,
-                vital_signs: {
-                    blood_pressure: "120/80",
-                    heart_rate: 72,
-                    weight_lbs: 180,
-                    blood_glucose_mg_dl: 90
-                },
-                physician_notes: "Patient is stable.",
-                next_appointment: "2023-07-15"
-            },
-            {
-                date: "2023-06-10",
-                reason: "Follow-up visit",
-                doctor_name: "John Doe",
-                doctor_id: docId,
-                vital_signs: {
-                    blood_pressure: "118/76",
-                    heart_rate: 70,
-                    weight_lbs: 178,
-                    blood_glucose_mg_dl: 85
-                },
-                physician_notes: "Patient shows improvement.",
-                next_appointment: "2023-12-10"
-            }
-        ]
-       
-        }
-
-        
-        // Validate required fields
-        if (!docId || !userId || !name || !date_of_birth || !gender || !contact) {
+        const {docId,patientId, Record } = req.body;
+        if (!docId || !patientId || !Record ) {
             return res.json({ success: false, message: "Missing required fields" });
         }
-
+        // Get doctor name from model using docId
+        const doctorName = await doctorModel.findById(docId).select('name');
+        if (!doctorName) {
+            return res.json({ success: false, message: "Doctor not found" });
+        }
         // Create a new patient record
+        // Ensure each visit in the Record has doctor_id set to docId
+        if (Record && Array.isArray(Record.visits)) {
+            Record.visits = Record.visits.map(visit => ({
+                ...visit,
+                doctor_id: docId,
+                doctor_name:doctorName
+            }));
+        }
+
         const patientRecordData = {
             docId,
-            userId,
-            name,
-            date_of_birth: Date.parse(date_of_birth),
-            gender,
-            contact,
-            medical_history: Array.isArray(medical_history) ? medical_history : [],
-            medications: Array.isArray(medications) ? medications : [],
-            allergies: Array.isArray(allergies) ? allergies : [],
-            immunizations: Array.isArray(immunizations) ? immunizations : [],
-            visits: Array.isArray(visits) ? visits.map(visit => ({
-                ...visit,
-                date: new Date(visit.date),
-                next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : null
-            })) : [],
-        
+            patientId: patientId,
+            name: Record.name,
+            date_of_birth: Record.date_of_birth ? new Date(Record.date_of_birth) : undefined,
+            gender: Record.gender,
+            contact: Record.contact,
+            medical_history: Array.isArray(Record.medical_history) ? Record.medical_history : [],
+            medications: Array.isArray(Record.medications) ? Record.medications : [],
+            allergies: Array.isArray(Record.allergies) ? Record.allergies : [],
+            immunizations: Array.isArray(Record.immunizations) ? Record.immunizations : [],
+            visits: Array.isArray(Record.visits)
+                ? Record.visits.map(visit => ({
+                    ...visit,
+                    date: visit.date ? new Date(visit.date) : undefined,
+                    next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : undefined
+                }))
+                : [],
         };
+
         const newPatientRecord = new patientRecordModel(patientRecordData);
-        
+      
         await newPatientRecord.save();
        
         res.json({ success: true, message: 'Patient record added successfully' });
@@ -161,37 +98,58 @@ const addPatientRecord = async (req, res) => {
     }
 }
 // API to get doctor appointments for doctor panel
-
 // API to get new appointments for doctor panel
 const newAppointments = async (req, res) => {
     try {
         const { docId } = req.body
         const appointmentsData = await appointmentModel.find({ docId ,isCompleted:false,cancelled:false})
-       
-         const newAppointments = await Promise.all(appointmentsData.map(async     (appointment) => {
-            const isRecord =  await patientRecordModel.findOne({ userId: appointment.userId })
-            return {
-             userData:{
-                name:appointment.userData.name,
-                id:appointment.userId,
-                dob:appointment.userData.dob,
-                gender:appointment.userData.gender,
-                image:appointment.userData.image,
-             },
-             amount:appointment.amount,
-             isCompleted:appointment.isCompleted,
-             slotDate:appointment.slotDate,
-             slotTime:appointment.slotTime,
-             id:appointment._id,
-                isRecord:!! isRecord,
-                recordId:isRecord ? isRecord._id.toString() : null
-
-             
-                }}));
-                
-             
+       // For each appointment, fetch user info and patient info from user
+       const newAppointments = await Promise.all(appointmentsData.map(async (appointment) => {
+           // Get user info (the user who booked the appointment)
+           const userInfoRaw = await userModel.findById(appointment.userId).select('name email phone address dob patients');
+           // Only include specific fields in userInfo
+           let userInfo = null;
+           if (userInfoRaw) {
+               userInfo = {
+                   _id: userInfoRaw._id,
+                   name: userInfoRaw.name,
+                   phone: userInfoRaw.phone,
+                   address: userInfoRaw.address,
+                   dob: userInfoRaw.dob,
+                   email: userInfoRaw.email
+               };
+           }
+           // Find patientInfo using patient in userInfoRaw.patients
+           let patientInfo = null;
+           // Check if this patient has a record in patientRecordModel
+           let recordId = null;
+           let isRecord = false;
+           if (appointment.patientId) {
+               const record = await patientRecordModel.findOne({
+                patientId: appointment.patientId,
+                   
+               }).select('_id');
+               if (record) {
+                   recordId = record._id;
+                   isRecord = true;
+               }
+           }
+           if (userInfoRaw && userInfoRaw.patients && userInfoRaw.patients.length > 0 && appointment.patientId) {
+               patientInfo = userInfoRaw.patients.find(
+                   (p) => p._id && p._id.toString() === appointment.patientId.toString()
+               );
+           }
+           return {
+               ...appointment.toObject(),
+               userInfo,
+               patientInfo,
+               isRecord,
+               recordId
+           };
+       }));
+      
+  
          res.json({ success: true, newAppointments })
-
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
@@ -349,7 +307,7 @@ const appointmentsDoctor = async (req, res) => {
         const appointmentsData = await appointmentModel.find({ docId })
         // Attempt to find a single patient record where the userId matches any from the appointments list
         const match = await patientRecordModel.findOne({ 
-            userId: { $in: appointmentsData.map(a => a.userId) } 
+            patientId: { $in: appointmentsData.map(a => a.patientId) } 
           });
         
           const isRecord = !!match; // true if found, false if not
@@ -398,25 +356,47 @@ const doctorDashboard = async (req, res) => {
             }
         })
       
+        // For each appointment, fetch user and patient info from userModel
+        const appointmentDetails = await Promise.all(appointmentsData.map(async (item) => {
+            // Fetch user info
+            const user = await userModel.findById(item.userId).select('name email phone address dob patients image gender');
+            let userData = null;
+            let patientInfo = null;
+            if (user) {
+                userData = {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    address: user.address,
+                    dob: user.dob,
+                    image: user.image,
+                    gender: user.gender
+                };
+                // Find patient info in user's patients array
+                if (user.patients && user.patients.length > 0 && item.patientId) {
+                    patientInfo = user.patients.find(
+                        (p, idx) => p._id && p._id.toString() === item.patientId.toString()
+                    );
+                }
+            }
+            return {
+                userData,
+                patientInfo,
+                amount: item.amount,
+                isCompleted: item.isCompleted,
+                cancelled: item.cancelled,
+                payment: item.payment,
+                slotDate: item.slotDate,
+                slotTime: item.slotTime,
+            };
+        }));
+
         const Data = {
             earnings,
-            name:doctorName.name,
-            appointment: appointmentsData.map((item) => ({
-                userData:{
-                    name:item.userData.name,
-                    id:item.userId,
-                    dob:item.userData.dob,
-                    gender:item.userData.gender,
-                    image:item.userData.image,
-                 },
-                 amount:item.amount,
-                 isCompleted:item.isCompleted,
-                 cancelled:item.cancelled,
-                 payment:item.payment,
-                 slotDate:item.slotDate,
-                 slotTime:item.slotTime,
-            })),
-            patients: patients.length, 
+            name: doctorName.name,
+            appointment: appointmentDetails,
+            patients: patients.length,
         }
        
         res.json({ success: true, Data })
@@ -457,6 +437,7 @@ const getActiveSlots = async (req, res) => {
     }
 }
 
+
 export {
     loginDoctor,
     appointmentsDoctor,
@@ -467,11 +448,11 @@ export {
     doctorDashboard,
     doctorProfile,
     updateDoctorProfile,
-    addPatientRecord,
     doctorPatientsRecord,
     getPatientRecord,
     newAppointments,
     changeSlotAvailability,
     getActiveSlots,
+    addPatientRecord
    
 }

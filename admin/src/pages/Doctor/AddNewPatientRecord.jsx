@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DoctorContext } from "../../context/DoctorContext";
 import {
@@ -16,9 +16,10 @@ import Loading from "../../components/Loading";
 import { toast } from "react-toastify";
 
 const AddNewPatientRecord = () => {
-  const { patientId } = useParams();
+  const { id } = useParams();
+  
   const navigate = useNavigate();
-  const { dToken, createPatientRecord } = useContext(DoctorContext);
+  const { dToken, addPatientRecord } = useContext(DoctorContext);
 
   // Main record state
   const [newRecord, setNewRecord] = useState({
@@ -100,19 +101,23 @@ const AddNewPatientRecord = () => {
   const handleVisitChange = (index, field, value) => {
     setNewRecord((prev) => ({
       ...prev,
-      visits: prev.visits.map((visit, i) =>
-        i === index
-          ? {
-              ...visit,
-              [field]: field.startsWith("vital_signs")
-                ? {
-                    ...visit.vital_signs,
-                    [field.split(".")[1]]: value,
-                  }
-                : value,
-            }
-          : visit
-      ),
+      visits: prev.visits.map((visit, i) => {
+        if (i !== index) return visit;
+        if (field.startsWith("vital_signs.")) {
+          const vitalField = field.split(".")[1];
+          return {
+            ...visit,
+            vital_signs: {
+              ...visit.vital_signs,
+              [vitalField]: value,
+            },
+          };
+        }
+        return {
+          ...visit,
+          [field]: value,
+        };
+      }),
     }));
   };
 
@@ -168,9 +173,10 @@ const AddNewPatientRecord = () => {
     setIsSubmitting(true);
 
     try {
-      await createPatientRecord(patientId, newRecord);
-      toast.success("Patient record created successfully!");
-      navigate(`/doctor/patientrecord_doctor/${patientId}`);
+      await addPatientRecord(id, newRecord);
+    
+   
+      navigate(`/doctor/patientrecord_doctor/${id}`);
     } catch (error) {
       toast.error(error.message || "Failed to create patient record");
     } finally {
@@ -622,7 +628,7 @@ const AddNewPatientRecord = () => {
                         </label>
                         <input
                           type="text"
-                          value={visit.vital_signs.blood_pressure}
+                          value={visit.vital_signs?.blood_pressure ?? ""}
                           onChange={(e) =>
                             handleVisitChange(
                               index,
@@ -639,7 +645,7 @@ const AddNewPatientRecord = () => {
                         </label>
                         <input
                           type="number"
-                          value={visit.vital_signs.heart_rate}
+                          value={visit.vital_signs?.heart_rate ?? ""}
                           onChange={(e) =>
                             handleVisitChange(
                               index,
@@ -656,7 +662,7 @@ const AddNewPatientRecord = () => {
                         </label>
                         <input
                           type="number"
-                          value={visit.vital_signs.weight_lbs}
+                          value={visit.vital_signs?.weight_lbs ?? ""}
                           onChange={(e) =>
                             handleVisitChange(
                               index,
@@ -673,7 +679,7 @@ const AddNewPatientRecord = () => {
                         </label>
                         <input
                           type="number"
-                          value={visit.vital_signs.blood_glucose_mg_dl}
+                          value={visit.vital_signs?.blood_glucose_mg_dl ?? ""}
                           onChange={(e) =>
                             handleVisitChange(
                               index,
@@ -706,12 +712,12 @@ const AddNewPatientRecord = () => {
                     date: "",
                     reason: "",
                     doctor_name: "",
-                    doctor_id: patientId,
+                    doctor_id: '',
                     vital_signs: {
                       blood_pressure: "",
-                      heart_rate: 0,
-                      weight_lbs: 0,
-                      blood_glucose_mg_dl: 0,
+                      heart_rate: "",
+                      weight_lbs: "",
+                      blood_glucose_mg_dl: "",
                     },
                     physician_notes: "",
                     next_appointment: "",

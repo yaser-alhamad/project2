@@ -2,8 +2,6 @@ import { useContext, useEffect } from "react";
 import { DoctorContext } from "../../context/DoctorContext";
 import { AppContext } from "../../context/AppContext";
 import { assets } from "../../assets/assets";
-
-import { FiCalendar } from "react-icons/fi";
 import Loading from "../../components/Loading";
 
 const DoctorDashboard = () => {
@@ -12,123 +10,199 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     if (dToken) getDashData();
-    console.log(dashData);
   }, [dToken]);
+
   if (!dashData || !dashData.appointment) {
     return <Loading />;
-    // or any loading indicator you prefer
   }
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8">
-      <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">
-              Welcome back,Dr. {dashData.name}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-              <img className="w-14" src={assets.earning_icon} alt="" />
-              <div>
-                <p className="text-xl font-semibold text-gray-600">
-                  {currency} {dashData.earnings}
-                </p>
-                <p className="text-gray-400">Earnings</p>
-              </div>
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Medical Dashboard</h1>
+          <p className="text-gray-600 mt-1">
+            Welcome back, <span className="text-teal-600 font-medium">Dr. {dashData.name}</span>
+          </p>
+        </div>
+        <div className="text-sm bg-blue-50 text-blue-700 px-4 py-2 rounded-lg">
+          <span className="font-medium">Last login:</span> Today at {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-              <img className="w-14" src={assets.appointments_icon} alt="" />
-              <div>
-                <p className="text-xl font-semibold text-gray-600">
-                  {
-                    dashData.appointment.filter((item) => item.isCompleted)
-                      .length
-                  }
-                </p>
-                <p className="text-gray-400">Appointments completed</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-              <img className="w-14" src={assets.appointments_icon} alt="" />
-              <div>
-                <p className="text-xl font-semibold text-gray-600">
-                  {dashData.appointment.length}
-                </p>
-                <p className="text-gray-400">Appointments</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-              <img className="w-14" src={assets.patients_icon} alt="" />
-              <div>
-                <p className="text-xl font-semibold text-gray-600">
-                  {dashData.patients}
-                </p>
-                <p className="text-gray-400">Patients</p>
-              </div>
+            <div>
+              <p className="text-gray-500 text-sm">Total Earnings</p>
+              <p className="text-xl font-bold text-gray-800 mt-1">
+                {currency} {dashData.earnings}
+              </p>
             </div>
           </div>
         </div>
+        
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="bg-green-50 p-3 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Completed Appointments</p>
+              <p className="text-xl font-bold text-gray-800 mt-1">
+                {dashData.appointment.filter(item => item.isCompleted).length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="bg-amber-50 p-3 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Total Appointments</p>
+              <p className="text-xl font-bold text-gray-800 mt-1">
+                {dashData.appointment.length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="bg-purple-50 p-3 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Active Patients</p>
+              <p className="text-xl font-bold text-gray-800 mt-1">
+                {dashData.patients}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Appointments List */}
-        <ul className="space-y-3">
-          {dashData.appointment.map((item, index) => (
-            <li
-              key={index}
-              className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center justify-between px-6 py-4">
-                {/* Patient Info */}
-                <div className="flex items-center space-x-4 w-1/4">
-                  <div className="font-semibold text-gray-900">
-                    {item.userData.name}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {calculateAge(item.userData.dob)} yrs
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.cancelled
-                        ? "bg-red-100 text-red-700"
+      {/* Appointments Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Patient Appointments</h2>
+            <p className="text-gray-600 text-sm mt-1">All scheduled appointments</p>
+          </div>
+          <div>
+            <button className="text-sm bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors">
+              New Appointment
+            </button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-3 px-6 text-gray-600 font-medium text-sm uppercase">Patient</th>
+                <th className="text-left py-3 px-6 text-gray-600 font-medium text-sm uppercase">Contact</th>
+                <th className="text-left py-3 px-6 text-gray-600 font-medium text-sm uppercase">Appointment</th>
+                <th className="text-left py-3 px-6 text-gray-600 font-medium text-sm uppercase">Payment</th>
+                <th className="text-left py-3 px-6 text-gray-600 font-medium text-sm uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {dashData.appointment.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  {/* Patient Info */}
+                  <td className="py-4 px-6">
+                    <div className="font-medium text-gray-900 flex items-center">
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 mr-3" />
+                      {item.patientInfo?.name || "N/A"}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {item.patientInfo?.dob ? `${calculateAge(item.patientInfo.dob)} yrs` : "N/A"} | {item.patientInfo?.gender || "N/A"}
+                    </div>
+                  </td>
+                  
+                  {/* Contact Info */}
+                  <td className="py-4 px-6">
+                    <div className="text-sm text-gray-900">{item.userData?.email || "N/A"}</div>
+                    <div className="text-sm text-gray-600">{item.userData?.phone || "N/A"}</div>
+                  </td>
+                  
+                  {/* Appointment Info */}
+                  <td className="py-4 px-6">
+                    <div className="font-medium text-gray-900">
+                      {slotDateFormat(item.slotDate)}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {item.slotTime}
+                    </div>
+                  </td>
+                  
+                  {/* Payment */}
+                  <td className="py-4 px-6">
+                    <div className="text-sm text-gray-900">
+                      {item.payment ? "Online" : "Cash"}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {currency}{item.amount}
+                    </div>
+                  </td>
+                  
+                  {/* Status */}
+                  <td className="py-4 px-6">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        item.cancelled
+                          ? "bg-red-100 text-red-700"
+                          : item.isCompleted
+                          ? "bg-green-100 text-green-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {item.cancelled
+                        ? "Cancelled"
                         : item.isCompleted
-                        ? "bg-green-100 text-green-700"
-                        : "bg-[#0d948833] text-[#0d9488]"
-                    }`}
-                  >
-                    {item.cancelled
-                      ? "Cancelled"
-                      : item.isCompleted
-                      ? "Completed"
-                      : "Upcoming"}
-                  </span>
-                </div>
-
-                {/* Appointment Date */}
-                <div className="flex items-center space-x-2 w-1/4">
-                  <FiCalendar className="w-5 h-5 text-gray-500" />
-                  <div className="text-gray-900 text-sm flex flex-row gap-2">
-                    <span>{slotDateFormat(item.slotDate)}</span>
-                    <span>{item.slotTime}</span>
-                  </div>
-                </div>
-
-                {/* Payment Info */}
-                <div className=" items-center space-x-2 w-1/4 md:block hidden">
-                  <div className="flex items-center space-x-1 text-gray-900 font-medium">
-                    <span>{item.payment ? "Online" : "Cash"}</span>
-                    <span>•</span>
-                    <span>
-                      {currency}
-                      {item.amount}
+                        ? "Completed"
+                        : "Upcoming"}
                     </span>
-                  </div>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Showing {dashData.appointment.length} appointments
+          </div>
+          <div className="flex space-x-2">
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">
+              Previous
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm bg-gray-100 text-gray-800 font-medium">
+              1
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
