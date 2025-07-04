@@ -19,7 +19,7 @@ const Navbar = () => {
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-[#ADADAD]">
       <img
         onClick={() => navigate("/")}
-        className="w-20 cursor-pointer"
+        className="w-14 cursor-pointer"
         src={assets.logo}
         alt=""
       />
@@ -89,7 +89,7 @@ const Navbar = () => {
           } right-0 top-0 bottom-0 z-20 overflow-hidden bg-white transition-all`}
         >
           <div className="flex items-center justify-between px-5 py-6">
-            <img src={assets.logo} className="w-36" alt="" />
+            <img src={assets.logo} className="w-14" alt="" />
             <img
               onClick={() => setShowMenu(false)}
               src={assets.cross_icon}
@@ -111,6 +111,39 @@ const Navbar = () => {
               <p className="px-4 py-2 rounded full inline-block">CONTACT</p>
             </NavLink>
           </ul>
+          {/* Mobile Auth/User Section */}
+          <div className="flex flex-col items-center gap-4 mt-6 px-5">
+            {token && userData ? (
+              <div className="flex flex-col items-center gap-2 w-full">
+                <img className="w-12 h-12 rounded-full mb-2" src={userData.image} alt="" />
+                <button
+                  onClick={() => { setShowMenu(false); navigate('/my-profile'); }}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded mb-1"
+                >
+                  My Profile
+                </button>
+                <button
+                  onClick={() => { setShowMenu(false); navigate('/my-appointments'); }}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded mb-1"
+                >
+                  My Appointments
+                </button>
+                <button
+                  onClick={() => { setShowMenu(false); logout(); }}
+                  className="w-full bg-primary text-white px-4 py-2 rounded"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setShowMenu(false); navigate('/login'); }}
+                className="w-full bg-primary text-white px-4 py-2 rounded-full font-light"
+              >
+                Create account
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

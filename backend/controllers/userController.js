@@ -15,7 +15,8 @@ const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 // API to register user
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { formData } = req.body;
+    const { name, email, password, phone, dob, gender, address } = formData;
 
     // checking for all data to register user
     if (!name || !email || !password) {
@@ -45,12 +46,22 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      patients:{
-        name,
-      }
-
+      phone,
+      dob,
+      gender,
+      address,
     };
-
+    // Add patient to user and fetch his name and dob
+    // Assuming userModel has a 'patients' array field to store patient info
+    if (!userData.patients) {
+      userData.patients = [];
+    }
+    // Add the patient (the user themselves) to the patients array
+    userData.patients.push({
+      name: userData.name,
+      dob: userData.dob,
+      gender: userData.gender,
+    });
     const newUser = new userModel(userData);
     const user = await newUser.save();
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
