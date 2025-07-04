@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { DoctorContext } from "../../context/DoctorContext";
 import { AppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
@@ -76,10 +76,10 @@ const DoctorAppointments = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {item.userData.name}
+                        {item.patientInfo.name}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        {calculateAge(item.userData.dob)} years
+                        {calculateAge(item.patientInfo.dob)} years
                       </p>
                     </div>
                   </div>
@@ -125,14 +125,14 @@ const DoctorAppointments = () => {
                   {!item.cancelled ? (
                     <div className="flex justify-around items-center border-t  border-gray-100 pt-5 px-5 flex-wrap gap-3">
                       <button
-                        onClick={() => completeAppointment(item.id)}
+                        onClick={() => completeAppointment(item._id)}
                         className="flex justify-center w-auto items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                       >
                         <FiCheckCircle className="w-3 h-3 md:w-4 md:h-4" />
                         <span className="text-sm md:text-base">Complete</span>
                       </button>
                       <button
-                        onClick={() => cancelAppointment(item.id)}
+                        onClick={() => cancelAppointment(item._id)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                       >
                         <FiXCircle className="w-3 h-3 md:w-4 md:h-4" />
@@ -166,7 +166,7 @@ const DoctorAppointments = () => {
                     className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700"
                     onClick={() =>
                       navigate(
-                        `/doctor/addnewpatientrecord/${item.userData.id}`
+                        `/doctor/addnewpatientrecord/${item.patientInfo._id}`
                       )
                     }
                   >

@@ -35,4 +35,6 @@ doctorRouter.get("/get-slots/", authDoctor, getActiveSlots)
 doctorRouter.post("/change-slot-availability", authDoctor, changeSlotAvailability)
 
 
+
+
 export default doctorRouter;

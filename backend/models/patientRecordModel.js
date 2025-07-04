@@ -6,7 +6,7 @@ const patientSchema = new mongoose.Schema(
     // Unique patient identifier
    // patient_id: { type: String, required: true, unique: true },
     docId: { type: String, required: true },
-    userId: { type: String, required: true },
+    patientId: { type: String, required: true },
     // Patient's full name
     name: { type: String, required: true },
    

@@ -16,6 +16,7 @@ const Appointment = () => {
     token,
     fetchDoctoreSlots,
     allSlots,
+    userData,
   } = useContext(AppContext);
 
   const [docInfo, setDocInfo] = useState(false);
@@ -23,6 +24,8 @@ const Appointment = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
+  const [showPatientModal, setShowPatientModal] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   const navigate = useNavigate();
 
@@ -72,12 +75,22 @@ const Appointment = () => {
       toast.warning("Login to book appointment");
       return navigate("/login");
     }
-
     if (!selectedSlot || !selectedDay) {
       toast.error("Please select a slot and date");
       return;
     }
-   
+    if (!userData || !userData.patients || userData.patients.length === 0) {
+      toast.error("You must add a patient to book an appointment.");
+      return navigate("/my-profile");
+    }
+    setShowPatientModal(true);
+  };
+
+  const confirmBookAppointment = async () => {
+    if (!selectedPatient) {
+      toast.error("Please select a patient");
+      return;
+    }
     try {
       const { data } = await axios.post(
         backendUrl + "/api/user/book-appointment",
@@ -85,13 +98,14 @@ const Appointment = () => {
           docId,
           dayId: selectedDay._id,
           slotId: selectedSlot._id,
+          patientId: selectedPatient._id,
         },
         { headers: { token } }
       );
-
       if (data.success) {
         toast.success(data.message);
-        // Optionally refresh doctor data or slots
+        setShowPatientModal(false);
+        setSelectedPatient(null);
         navigate("/my-appointments");
       } else {
         toast.error(data.message);
@@ -558,8 +572,7 @@ const Appointment = () => {
                       Selected Appointment:
                     </h4>
                     <p className="text-sm text-gray-700">
-                      {formatDate(selectedDate)} at{" "}
-                      {formatTime(selectedSlot.slotTime)}
+                      {formatDate(selectedDate)} at {formatTime(selectedSlot.slotTime)}
                     </p>
                   </div>
                   <button
@@ -578,6 +591,44 @@ const Appointment = () => {
 
       {/* Listing Releated Doctors */}
       <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
+
+      {/* Patient Selection Modal */}
+      {showPatientModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => { setShowPatientModal(false); setSelectedPatient(null); }}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Select Patient</h2>
+            {userData && userData.patients && userData.patients.length > 0 ? (
+              <div className="space-y-3 max-h-60 overflow-y-auto mb-4">
+                {userData.patients.map((patient) => (
+                  <div
+                    key={patient._id}
+                    className={`p-3 rounded border cursor-pointer flex flex-col transition-all ${selectedPatient && selectedPatient._id === patient._id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white hover:border-teal-300'}`}
+                    onClick={() => setSelectedPatient(patient)}
+                  >
+                    <span className="font-medium text-gray-800">{patient.name}</span>
+                    <span className="text-xs text-gray-500">{patient.gender}, {patient.dob}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500 mb-4">No patients found. Please add a patient in your profile.</div>
+            )}
+            <button
+              className="w-full bg-gradient-to-r from-teal-400 to-[#0d9f92] text-white font-semibold py-2 rounded-lg disabled:opacity-50"
+              onClick={confirmBookAppointment}
+              disabled={!selectedPatient}
+            >
+              Confirm & Book
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   ) : null;
 };

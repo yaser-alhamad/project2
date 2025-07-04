@@ -41,11 +41,14 @@ const registerUser = async (req, res) => {
     // hashing user password
     const salt = await bcrypt.genSalt(10); // the more no. round the more time it will take
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const userData = {
       name,
       email,
       password: hashedPassword,
+      patients:{
+        name,
+      }
+
     };
 
     const newUser = new userModel(userData);
@@ -134,12 +137,10 @@ const updateProfile = async (req, res) => {
 // API to book appointment
 const bookAppointment = async (req, res) => {
   try {
-    const { userId, docId, dayId, slotId } = req.body;
+    const { userId, docId, dayId, slotId,patientId } = req.body;
     const docData = await doctorModel.findById(docId).select("-password");
     
-    if (!docData.available) {
-      return res.json({ success: false, message: "Doctor Not Available" });
-    }
+   
     const slotDay = await SoltsTable.findById(dayId)
     const slot = slotDay.slots.find(slot => slot._id.toString() === slotId)
     if(slot.isBooked && !slot.isAvailable){
@@ -149,22 +150,17 @@ const bookAppointment = async (req, res) => {
     await slotDay.save()
     const dateObj = new Date(slotDay.date);
     const formattedDate = `${dateObj.getDate()}_${dateObj.getMonth() + 1}_${dateObj.getFullYear()}`;
-  
-     const userData = await userModel.findById(userId).select("-password");
-
-
+    // get patient name from user data
     const appointmentData = {
       userId,
+      patientId,
       docId,
       slotId,
-      userData,
-      docData,
       amount: docData.fees,
       slotTime:slot.slotTime,
       slotDate:formattedDate,
       date: Date.now(),
     };
-
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
@@ -298,6 +294,25 @@ const getSlots = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
+const addPatient = async (req, res) => {
+  try {
+    const { userId, newPatient } = req.body;
+    if (!newPatient) {
+      return res.json({ success: false, message: "Data Missing" });
+    }
+
+    // Add the new patient to the user's patients array
+    await userModel.findByIdAndUpdate(
+      userId,
+      { $push: { patients: newPatient } }
+    );
+
+    res.json({ success: true, message: "Patient add success" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
 export {
   loginUser,
@@ -309,5 +324,7 @@ export {
   cancelAppointment,
   paymentStripe,
   verifyStripe,
-  getSlots
+  getSlots,
+  addPatient,
+ 
 };
