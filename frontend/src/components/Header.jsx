@@ -1,11 +1,10 @@
-import React from 'react'
 import { assets } from '../assets/assets'
 
 const Header = () => {
     return (
         <header className="relative flex flex-col md:flex-row flex-wrap bg-gradient-to-tr from-cyan-500 via-blue-500 to-blue-300 rounded-3xl px-8 md:px-16 py-6 md:py-10 overflow-hidden shadow-lg">
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none z-0" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none z-10" />
             {/* --------- Header Left --------- */}
             <div className="md:w-1/2 flex flex-col items-start justify-center gap-4 py-4 md:py-0 z-10">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl text-blue-900 font-extrabold leading-tight mb-4 drop-shadow-lg">
