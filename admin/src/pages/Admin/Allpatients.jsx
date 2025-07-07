@@ -56,7 +56,7 @@ const Patients = () => {
           </div>
 
           {/* Desktop View Header */}
-          <div className="hidden sm:grid grid-cols-[minmax(60px,0.5fr)_3fr_repeat(5,minmax(80px,1fr))] items-center py-4 px-6 bg-gradient-to-r from-teal-50 to-[#0d948833] backdrop-blur text-[#0d9488] text-sm font-semibold uppercase tracking-wide border-b border-blue-100">
+          <div className="hidden sm:grid grid-cols-[minmax(60px,0.5fr)_3fr_repeat(5,minmax(80px,1fr))] items-center py-4 px-6 bg-gradient-to-r from-teal-50 to-[#0d948833] backdrop-blur text-[#0d9488] text-sm font-semibold uppercase tracking-wide border-b border-teal-100">
             <span>#</span>
             <span>Patient</span>
             <span>Age</span>
@@ -89,7 +89,7 @@ const Patients = () => {
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-10 h-10 rounded-full border-2 border-blue-100 object-cover shadow-sm"
+                        className="w-10 h-10 rounded-full border-2 border-teal-100 object-cover shadow-sm"
                         onError={(e) =>
                           (e.target.src = "/placeholder-user.jpg")
                         }
@@ -105,7 +105,7 @@ const Patients = () => {
                   </div>
 
                   <span>{calculateAge(item.date_of_birth)}</span>
-                  <span className="capitalize px-2 py-1 bg-blue-50 text-[#0d9488] text-xs w-fit font-medium rounded-full">
+                  <span className="capitalize px-2 py-1 bg-teal-50 text-[#0d9488] text-xs w-fit font-medium rounded-full">
                     {item.gender}
                   </span>
                   <span className="font-medium text-[#0d9488]">
@@ -131,7 +131,7 @@ const Patients = () => {
                       <p className="font-medium text-gray-900 truncate">
                         {item.name}
                       </p>
-                      <span className="ml-2 text-xs text-[#0d9488] bg-blue-50 px-2 py-0.5 rounded-full capitalize">
+                      <span className="ml-2 text-xs text-[#0d9488] bg-teal-50 px-2 py-0.5 rounded-full capitalize">
                         {item.gender}
                       </span>
                     </div>
@@ -175,7 +175,7 @@ const Patients = () => {
 
             {allpatients.length === 0 && (
               <div className="py-12 text-center text-gray-500">
-                <FaHospital className="w-12 h-12 mx-auto text-blue-200 mb-4" />
+                <FaHospital className="w-12 h-12 mx-auto text-teal-200 mb-4" />
                 <p className="text-lg font-medium text-[#0d9488]">
                   No patients found
                 </p>
