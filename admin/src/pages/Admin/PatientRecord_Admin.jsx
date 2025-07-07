@@ -212,7 +212,7 @@ const PatientRecord_Admin = () => {
           </SectionCard>
 
           <SectionCard
-            icon={<BeakerIcon className="w-6 h-6 text-blue-500" />}
+            icon={<BeakerIcon className="w-6 h-6 text-teal-500" />}
             title="Immunizations"
           >
             <ul className="space-y-2">
@@ -220,7 +220,7 @@ const PatientRecord_Admin = () => {
                 patientRecord.immunizations.map((imm, idx) => (
                   <div
                     key={imm._id}
-                    className="flex  items-center justify-between border-l-4 border-blue-100 pl-3"
+                    className="flex  items-center justify-between border-l-4 border-teal-100 pl-3"
                   >
                     <div className="flex flex-col gap-2">
                       <p className="font-medium text-gray-800">{imm.vaccine}</p>
@@ -271,11 +271,11 @@ const PatientRecord_Admin = () => {
                     value={"Dr. " + visit.doctor_name}
                   />
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-teal-50 p-4 rounded-lg">
                     <h4 className="font-medium text-[#0d9488] mb-2">
                       Physician Notes
                     </h4>
-                    <p className="text-blue-700 leading-relaxed">
+                    <p className="text-teal-700 leading-relaxed">
                       {visit.physician_notes}
                     </p>
                   </div>

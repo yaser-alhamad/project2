@@ -1,11 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AdminContext } from "../../context/AdminContext";
 import { AppContext } from "../../context/AppContext";
-import {
-  FiCalendar,
-  FiDollarSign,
-  FiSettings,
-} from "react-icons/fi";
+import { FiCalendar, FiDollarSign, FiSettings } from "react-icons/fi";
 import {
   FaUserMd,
   FaUserInjured,
@@ -75,12 +71,12 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 hover:shadow-md transition-all">
-            <div className="p-3 bg-blue-100 text-blue-500 rounded-xl">
+          <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-teal-500 border-t border-r border-b border-gray-100 hover:shadow-md transition-all">
+            <div className="p-3 bg-teal-100 text-teal-500 rounded-xl">
               <FaUserMd className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-blue-500 font-medium">Doctors</p>
+              <p className="text-sm text-teal-500 font-medium">Doctors</p>
               <p className="text-2xl font-bold text-gray-800">
                 {dashData.doctors || 0}
               </p>
@@ -187,13 +183,13 @@ const Dashboard = () => {
                 <FaHeartbeat className="mr-2 text-[#0d9488]" />
                 Clinical Activity Log
               </h2>
-              <span className="text-xs font-medium text-[#0d9488] bg-blue-50 px-3 py-1 rounded-full">
+              <span className="text-xs font-medium text-[#0d9488] bg-teal-50 px-3 py-1 rounded-full">
                 Real-time
               </span>
             </div>
             <div className="p-6">
               <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 to-teal-300"></div>
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-teal-300 to-teal-300"></div>
                 <ul className="space-y-6">
                   {recentActivities && recentActivities.length > 0 ? (
                     recentActivities.map((activity, index) => (
@@ -250,7 +246,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 gap-6">
           {/* Latest Appointments */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-teal-50">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-teal-50 to-teal-50">
               <h2 className="text-xl font-bold text-[#0d9488] flex items-center">
                 <FaNotesMedical className="mr-2 text-[#0d9488]" />
                 Recent Consultations
@@ -266,14 +262,14 @@ const Dashboard = () => {
               {dashData.latestAppointments?.slice(0, 5).map((item, index) => (
                 <li
                   key={index}
-                  className="px-6 py-5 hover:bg-blue-50 transition-colors"
+                  className="px-6 py-5 hover:bg-teal-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     {/* Doctor Info */}
                     <div className="flex items-center space-x-4 w-1/4">
                       <div className="relative">
                         <img
-                          className="w-12 h-12 rounded-full object-cover border-2 border-blue-200"
+                          className="w-12 h-12 rounded-full object-cover border-2 border-teal-200"
                           src={item.docData?.image || "/placeholder-doctor.jpg"}
                           alt={item.docData?.name || "Doctor"}
                         />
@@ -366,12 +362,12 @@ const Dashboard = () => {
               <FiSettings className="mr-2 text-[#0d9488]" />
               Quick Actions
             </h2>
-            <span className="px-3 py-1 bg-[#0d948833] text-blue-700 rounded-lg text-xs font-semibold">
+            <span className="px-3 py-1 bg-[#0d948833] text-teal-700 rounded-lg text-xs font-semibold">
               Administrative Tools
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex flex-col items-center justify-center p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all">
+            <button className="flex flex-col items-center justify-center p-6 bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl hover:shadow-md transition-all">
               <FaUserMd className="w-8 h-8 text-[#0d9488] mb-3" />
               <span className="text-gray-800 font-medium">Add New Doctor</span>
               <span className="text-xs text-[#0d9488] mt-1">

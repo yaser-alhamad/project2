@@ -89,7 +89,7 @@ const DoctorAppointments = () => {
                         ? "bg-red-100 text-red-700"
                         : item.isCompleted
                         ? "bg-green-100 text-green-700"
-                        : "bg-[#0d948833] text-blue-700"
+                        : "bg-[#0d948833] text-teal-700"
                     }`}
                   >
                     {item.cancelled
@@ -153,7 +153,7 @@ const DoctorAppointments = () => {
               <div className="p-6 border-t border-gray-100 flex items-center justify-end">
                 {item.isRecord ? (
                   <button
-                    className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700"
+                    className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700"
                     onClick={() =>
                       navigate(`/doctor/patientrecord_doctor/${item.recordId}`)
                     }
@@ -163,7 +163,7 @@ const DoctorAppointments = () => {
                   </button>
                 ) : (
                   <button
-                    className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700"
+                    className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700"
                     onClick={() =>
                       navigate(
                         `/doctor/addnewpatientrecord/${item.patientInfo._id}`
