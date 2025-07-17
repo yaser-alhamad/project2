@@ -97,7 +97,55 @@ const addPatientRecord = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
-// API to get doctor appointments for doctor panel
+//api to edit patient record 
+const editPatientRecord =async (req,res)=>{
+    try{
+        
+        const {id, updatedData} =req.body
+       
+        if(!id,!updatedData){
+            return res.json({ success: false, message: "Error " });
+        }
+        // Find the patient record by id
+        const patientRecord = await patientRecordModel.findById(id);
+        if (!patientRecord) {
+            return res.json({ success: false, message: "Patient record not found" });
+        }
+
+        // Update the fields in the patient record with updatedData
+        // Only update fields that exist in updatedData
+        Object.keys(updatedData).forEach(key => {
+            // If the field is an array, replace it; otherwise, update the value
+            if (Array.isArray(updatedData[key])) {
+                patientRecord[key] = [...updatedData[key]];
+            } else if (updatedData[key] !== undefined) {
+                patientRecord[key] = updatedData[key];
+            }
+        });
+
+        // If visits are being updated, ensure date fields are Date objects
+        if (updatedData.visits && Array.isArray(updatedData.visits)) {
+            patientRecord.visits = updatedData.visits.map(visit => ({
+                ...visit,
+                date: visit.date ? new Date(visit.date) : undefined,
+                next_appointment: visit.next_appointment ? new Date(visit.next_appointment) : undefined
+            }));
+        }
+
+        // If date_of_birth is being updated, ensure it's a Date object
+        if (updatedData.date_of_birth) {
+            patientRecord.date_of_birth = new Date(updatedData.date_of_birth);
+        }
+
+        await patientRecord.save();
+
+        res.json({ success: true, message: "Patient record updated successfully" });
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 // API to get new appointments for doctor panel
 const newAppointments = async (req, res) => {
     try {
@@ -453,6 +501,7 @@ export {
     newAppointments,
     changeSlotAvailability,
     getActiveSlots,
-    addPatientRecord
+    addPatientRecord,
+    editPatientRecord
    
 }

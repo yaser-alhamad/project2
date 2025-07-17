@@ -1,12 +1,18 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
   const { token, setToken, userData } = useContext(AppContext);
+
+  // Controls mobile menu
+  const [showMenu, setShowMenu] = useState(false);
+
+  // Controls desktop-profile dropdown
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -14,68 +20,122 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  // Close dropdown if click happens outside of it
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <>
-      <nav className="flex items-center justify-between text-sm py-4 px-6 bg-white/80 backdrop-blur-md shadow-lg rounded-2xl" aria-label="Main Navigation">
+      <nav className="relative z-40 flex items-center justify-between text-sm py-4 px-6 bg-white/80 backdrop-blur-md shadow-lg rounded-2xl">
+        {/* Logo */}
         <img
           onClick={() => navigate("/")}
+          onKeyDown={e => e.key === "Enter" && navigate("/")}
           className="w-14 cursor-pointer drop-shadow-md"
           src={assets.logo}
           alt="App logo"
           tabIndex={0}
-          onKeyDown={e => { if (e.key === 'Enter') navigate('/'); }}
         />
-        <ul className="md:flex items-start gap-7 font-semibold hidden">
-          <NavLink to="/" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <li className="py-1 px-2 rounded-lg hover:bg-blue-50 transition-colors focus:outline-blue-700" tabIndex={0}>HOME</li>
-          </NavLink>
-          <NavLink to="/doctors" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <li className="py-1 px-2 rounded-lg hover:bg-blue-50 transition-colors focus:outline-blue-700" tabIndex={0}>ALL DOCTORS</li>
-          </NavLink>
-          <NavLink to="/about" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <li className="py-1 px-2 rounded-lg hover:bg-blue-50 transition-colors focus:outline-blue-700" tabIndex={0}>ABOUT</li>
-          </NavLink>
-          <NavLink to="/contact" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <li className="py-1 px-2 rounded-lg hover:bg-blue-50 transition-colors focus:outline-blue-700" tabIndex={0}>CONTACT</li>
-          </NavLink>
+
+        {/* Desktop Links */}
+        <ul className="hidden md:flex items-start gap-7 font-semibold">
+          {[
+            { to: "/", label: "HOME" },
+            { to: "/doctors", label: "ALL DOCTORS" },
+            { to: "/about", label: "ABOUT" },
+            { to: "/contact", label: "CONTACT" },
+          ].map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive
+                  ? "text-blue-700 underline underline-offset-4"
+                  : "text-gray-700"
+              }
+            >
+              <li className="py-1 px-2 rounded-lg hover:bg-blue-50 transition-colors focus:outline-blue-700" tabIndex={0}>
+                {label}
+              </li>
+            </NavLink>
+          ))}
         </ul>
-        <div className="flex items-center gap-4 ">
+
+        {/* Right side: profile / login & mobile menu button */}
+        <div className="flex items-center gap-4">
           {token && userData ? (
-            <div className="hidden md:flex items-center gap-2 cursor-pointer group relative" tabIndex={0} aria-haspopup="true" aria-expanded="false">
-              <img className="w-8 rounded-full border-2 border-blue-200 shadow" src={userData.image} alt="User profile" />
-              <img className="w-2.5" src={assets.dropdown_icon} alt="Dropdown icon" />
-              <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block group-focus:block">
-                <div className="min-w-48 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg flex flex-col gap-4 p-4">
-                  <p
-                    onClick={() => navigate("/my-profile")}
-                    className="hover:text-blue-700 cursor-pointer"
-                    tabIndex={0}
-                    onKeyDown={e => { if (e.key === 'Enter') navigate('/my-profile'); }}
+            // Desktop profile dropdown
+            <div ref={dropdownRef} className="relative z-50">
+              <button
+                onClick={() => setDropdownOpen(o => !o)}
+                aria-haspopup="true"
+                aria-expanded={dropdownOpen}
+                className="flex items-center gap-1 focus:outline-none"
+              >
+                <img
+                  className="w-8 h-8 rounded-full border-2 border-blue-200 shadow"
+                  src={userData.image}
+                  alt="User profile"
+                />
+                <img
+                  className="w-2.5"
+                  src={assets.dropdown_icon}
+                  alt="Toggle dropdown"
+                />
+              </button>
+
+              {dropdownOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg text-gray-600 font-medium z-50"
+                >
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/my-profile");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:text-blue-700"
                   >
                     My Profile
-                  </p>
-                  <p
-                    onClick={() => navigate("/my-appointments")}
-                    className="hover:text-blue-700 cursor-pointer"
-                    tabIndex={0}
-                    onKeyDown={e => { if (e.key === 'Enter') navigate('/my-appointments'); }}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/my-appointments");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:text-blue-700"
                   >
                     My Appointments
-                  </p>
-                  <p onClick={logout} className="hover:text-blue-700 cursor-pointer" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') logout(); }}>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:text-blue-700"
+                  >
                     Logout
-                  </p>
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <button
               onClick={() => navigate("/login")}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-full font-semibold shadow-md hidden md:block transition-colors"
+              className="hidden md:block bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-full font-semibold shadow-md transition-colors"
             >
               Create account
             </button>
           )}
+
+          {/* Mobile menu toggle */}
           <button
             onClick={() => setShowMenu(true)}
             className="w-6 md:hidden"
@@ -85,6 +145,7 @@ const Navbar = () => {
           </button>
         </div>
       </nav>
+
       {/* ---- Mobile Menu ---- */}
       <div
         className={`md:hidden ${
@@ -102,39 +163,64 @@ const Navbar = () => {
             <img src={assets.cross_icon} alt="Close menu" />
           </button>
         </div>
+
+        {/* Mobile nav links */}
         <ul className="flex flex-col items-center gap-4 mt-5 px-5 text-lg font-semibold">
-          <NavLink onClick={() => setShowMenu(false)} to="/" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <p className="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors" tabIndex={0}>HOME</p>
-          </NavLink>
-          <NavLink onClick={() => setShowMenu(false)} to="/doctors" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <p className="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors" tabIndex={0}>ALL DOCTORS</p>
-          </NavLink>
-          <NavLink onClick={() => setShowMenu(false)} to="/about" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <p className="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors" tabIndex={0}>ABOUT</p>
-          </NavLink>
-          <NavLink onClick={() => setShowMenu(false)} to="/contact" className={({isActive}) => isActive ? 'text-blue-700 underline underline-offset-4' : 'text-gray-700'}>
-            <p className="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors" tabIndex={0}>CONTACT</p>
-          </NavLink>
+          {[
+            { to: "/", label: "HOME" },
+            { to: "/doctors", label: "ALL DOCTORS" },
+            { to: "/about", label: "ABOUT" },
+            { to: "/contact", label: "CONTACT" },
+          ].map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setShowMenu(false)}
+              className={({ isActive }) =>
+                isActive
+                  ? "text-blue-700 underline underline-offset-4"
+                  : "text-gray-700"
+              }
+            >
+              <p className="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors" tabIndex={0}>
+                {label}
+              </p>
+            </NavLink>
+          ))}
         </ul>
-        {/* Mobile Auth/User Section */}
+
+        {/* Mobile profile / auth */}
         <div className="flex flex-col items-center gap-4 mt-6 px-5">
           {token && userData ? (
             <div className="flex flex-col items-center gap-2 w-full">
-              <img className="w-12 h-12 rounded-full mb-2 border-2 border-blue-200 shadow" src={userData.image} alt="User profile" />
+              <img
+                className="w-12 h-12 rounded-full mb-2 border-2 border-blue-200 shadow"
+                src={userData.image}
+                alt="User profile"
+              />
               <button
-                onClick={() => { setShowMenu(false); navigate('/my-profile'); }}
+                onClick={() => {
+                  setShowMenu(false);
+                  navigate("/my-profile");
+                }}
                 className="w-full bg-blue-50 hover:bg-blue-100 text-blue-800 px-4 py-2 rounded-lg mb-1 font-semibold"
               >
                 My Profile
               </button>
               <button
-                onClick={() => { setShowMenu(false); navigate('/my-appointments'); }}
+                onClick={() => {
+                  setShowMenu(false);
+                  navigate("/my-appointments");
+                }}
                 className="w-full bg-blue-50 hover:bg-blue-100 text-blue-800 px-4 py-2 rounded-lg mb-1 font-semibold"
               >
                 My Appointments
               </button>
               <button
-                onClick={() => { setShowMenu(false); logout(); }}
+                onClick={() => {
+                  setShowMenu(false);
+                  logout();
+                }}
                 className="w-full bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold"
               >
                 Logout
@@ -142,7 +228,10 @@ const Navbar = () => {
             </div>
           ) : (
             <button
-              onClick={() => { setShowMenu(false); navigate('/login'); }}
+              onClick={() => {
+                setShowMenu(false);
+                navigate("/login");
+              }}
               className="w-full bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-full font-semibold"
             >
               Create account
