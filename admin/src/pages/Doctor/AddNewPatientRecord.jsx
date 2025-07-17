@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 
 const AddNewPatientRecord = () => {
   const { id } = useParams();
-  
+
   const navigate = useNavigate();
   const { dToken, addPatientRecord } = useContext(DoctorContext);
 
@@ -174,8 +174,7 @@ const AddNewPatientRecord = () => {
 
     try {
       await addPatientRecord(id, newRecord);
-    
-   
+
       navigate(`/doctor/patientrecord_doctor/${id}`);
     } catch (error) {
       toast.error(error.message || "Failed to create patient record");
@@ -197,7 +196,7 @@ const AddNewPatientRecord = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information Section */}
           <SectionCard
-            icon={<UserCircleIcon className="w-6 h-6 text-blue-500" />}
+            icon={<UserCircleIcon className="w-6 h-6 text-teal-500" />}
             title="Basic Information"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -367,7 +366,7 @@ const AddNewPatientRecord = () => {
                     frequency: "",
                   })
                 }
-                className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700 text-sm"
+                className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700 text-sm"
               >
                 <PlusIcon className="w-4 h-4" />
                 Add Medication
@@ -405,7 +404,7 @@ const AddNewPatientRecord = () => {
               <button
                 type="button"
                 onClick={() => addArrayItem("allergies", "")}
-                className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700 text-sm"
+                className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700 text-sm"
               >
                 <PlusIcon className="w-4 h-4" />
                 Add Allergy
@@ -444,7 +443,7 @@ const AddNewPatientRecord = () => {
               <button
                 type="button"
                 onClick={() => addArrayItem("medical_history", "")}
-                className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700 text-sm"
+                className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700 text-sm"
               >
                 <PlusIcon className="w-4 h-4" />
                 Add Medical History
@@ -453,7 +452,7 @@ const AddNewPatientRecord = () => {
           </SectionCard>
 
           <SectionCard
-            icon={<BeakerIcon className="w-6 h-6 text-blue-500" />}
+            icon={<BeakerIcon className="w-6 h-6 text-teal-500" />}
             title="Immunizations"
           >
             <div className="space-y-4">
@@ -538,7 +537,7 @@ const AddNewPatientRecord = () => {
                     date: "",
                   })
                 }
-                className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700 text-sm"
+                className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700 text-sm"
               >
                 <PlusIcon className="w-4 h-4" />
                 Add Immunization
@@ -712,7 +711,7 @@ const AddNewPatientRecord = () => {
                     date: "",
                     reason: "",
                     doctor_name: "",
-                    doctor_id: '',
+                    doctor_id: "",
                     vital_signs: {
                       blood_pressure: "",
                       heart_rate: "",
@@ -723,7 +722,7 @@ const AddNewPatientRecord = () => {
                     next_appointment: "",
                   })
                 }
-                className="flex items-center gap-2 text-[#0d9f92] hover:text-blue-700 text-sm"
+                className="flex items-center gap-2 text-[#0d9f92] hover:text-teal-700 text-sm"
               >
                 <PlusIcon className="w-4 h-4" />
                 Add Visit
@@ -736,7 +735,7 @@ const AddNewPatientRecord = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#0d9f92] text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-[#0d9f92] text-white py-3 px-6 rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
