@@ -1,14 +1,7 @@
-<<<<<<< HEAD
-import { useContext, useState, useEffect } from 'react'
-import axios from 'axios'
-import { AdminContext } from '../../context/AdminContext'
-import Loading from '../../components/Loading'
-=======
 import { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { AdminContext } from "../../context/AdminContext";
 import Loading from "../../components/Loading";
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 import {
   FiCalendar,
   FiPlus,
@@ -19,45 +12,6 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiAlertTriangle,
-<<<<<<< HEAD
-} from 'react-icons/fi'
-import { FaUserMd, FaRegCalendarAlt } from 'react-icons/fa'
-import { toast } from 'react-toastify'
-
-const ManageSlots = () => {
-  const {
-    backendUrl,
-    aToken,
-    doctors,
-    getAllDoctors,
-    changeSlotAvailability,
-  } = useContext(AdminContext)
-  const [allSlots, setAllSlots] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [doctorId, setDoctorId] = useState('')
-  const [currentWeekStart, setCurrentWeekStart] = useState(new Date())
-
-  // Calculate week start (Monday)
-  const getWeekStart = (date) => {
-    const d = new Date(date)
-    const day = d.getDay()
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-    return new Date(d.setDate(diff))
-  }
-
-  // Get all available weeks from slot data
-  const getAvailableWeeks = () => {
-    if (!allSlots.length) return []
-    const weeks = new Set()
-    allSlots.forEach((slotDay) => {
-      const weekStart = getWeekStart(new Date(slotDay.date))
-      weeks.add(weekStart.toISOString().split('T')[0])
-    })
-    return Array.from(weeks)
-      .sort()
-      .map((dateStr) => new Date(dateStr))
-  }
-=======
 } from "react-icons/fi";
 import { FaUserMd, FaRegCalendarAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -93,25 +47,9 @@ const ManageSlots = () => {
       .sort()
       .map((dateStr) => new Date(dateStr));
   };
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   // Navigate week
   const navigateWeek = (direction) => {
-<<<<<<< HEAD
-    const weeks = getAvailableWeeks()
-    if (!weeks.length) return
-    const currentStr = getWeekStart(currentWeekStart)
-      .toISOString()
-      .split('T')[0]
-    const idx = weeks.findIndex(
-      (w) => w.toISOString().split('T')[0] === currentStr
-    )
-    let newIdx = idx === -1 ? 0 : idx + direction
-    if (newIdx < 0) newIdx = weeks.length - 1
-    if (newIdx >= weeks.length) newIdx = 0
-    setCurrentWeekStart(weeks[newIdx])
-  }
-=======
     const availableWeeks = getAvailableWeeks();
     if (availableWeeks.length === 0) return;
 
@@ -134,22 +72,8 @@ const ManageSlots = () => {
 
     setCurrentWeekStart(availableWeeks[newIndex]);
   };
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   const canNavigate = (direction) => {
-<<<<<<< HEAD
-    const weeks = getAvailableWeeks()
-    if (weeks.length <= 1) return false
-    const currentStr = getWeekStart(currentWeekStart)
-      .toISOString()
-      .split('T')[0]
-    const idx = weeks.findIndex(
-      (w) => w.toISOString().split('T')[0] === currentStr
-    )
-    const newIdx = idx + direction
-    return newIdx >= 0 && newIdx < weeks.length
-  }
-=======
     const availableWeeks = getAvailableWeeks();
     if (availableWeeks.length <= 1) return false;
 
@@ -165,20 +89,8 @@ const ManageSlots = () => {
     const newIndex = currentIndex + direction;
     return newIndex >= 0 && newIndex < availableWeeks.length;
   };
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   const getCurrentWeekSlots = () => {
-<<<<<<< HEAD
-    if (!allSlots.length) return []
-    const start = getWeekStart(currentWeekStart)
-    const end = new Date(start)
-    end.setDate(end.getDate() + 6)
-    return allSlots.filter((day) => {
-      const d = new Date(day.date)
-      return d >= start && d <= end
-    })
-  }
-=======
     if (!allSlots.length) return [];
 
     const weekStart = getWeekStart(currentWeekStart);
@@ -190,7 +102,6 @@ const ManageSlots = () => {
       return slotDate >= weekStart && slotDate <= weekEnd;
     });
   };
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   const handleGenerateSlots = async () => {
     if (!doctorId) {
@@ -203,8 +114,7 @@ const ManageSlots = () => {
         `${backendUrl}/api/admin/generate-slots`,
         { doctorId },
         { headers: { aToken } }
-<<<<<<< HEAD
-      )
+      );
       if (data.success) {
         toast.success('Slots generated successfully')
         fetchActiveSlots()
@@ -213,18 +123,6 @@ const ManageSlots = () => {
       }
     } catch {
       toast.error('An error occurred while generating slots')
-=======
-      );
-      if (response.data.success) {
-        toast.success("Slots generated successfully");
-        fetchActiveSlots();
-      } else {
-        toast.error(response.data.message || "Failed to generate slots");
-      }
-    } catch (error) {
-      console.error("Error generating slots:", error);
-      toast.error("An error occurred while generating slots");
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
     }
     setLoading(false);
   };
@@ -234,76 +132,25 @@ const ManageSlots = () => {
       setAllSlots([]);
       return;
     }
-<<<<<<< HEAD
-    setLoading(true)
-=======
     setLoading(true);
     setAllSlots([]);
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/admin/get-slots/${doctorId}`,
         { headers: { aToken } }
-<<<<<<< HEAD
-      )
-      setAllSlots(data.success ? data.slotsData || [] : [])
-    } catch {
-      setAllSlots([])
-=======
       );
-      if (response.data.success) {
-        setAllSlots(response.data.slotsData || []);
+      if (data.success) {
+        setAllSlots(data.slotsData || []);
       } else {
         setAllSlots([]);
       }
     } catch (error) {
       console.error("Error fetching active slots:", error);
       setAllSlots([]);
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
     }
     setLoading(false);
   };
 
-<<<<<<< HEAD
-  // Toggle availability optimistically
-  const toggleSlot = (slotId, dayId) => {
-    const day = allSlots.find((d) => d.id === dayId)
-    if (!day) return
-    const slot = day.slots.find((s) => s._id === slotId)
-    if (!slot || slot.isBooked) return
-
-    const updated = allSlots.map((d) =>
-      d.id === dayId
-        ? {
-            ...d,
-            slots: d.slots.map((s) =>
-              s._id === slotId ? { ...s, isAvailable: !s.isAvailable } : s
-            ),
-          }
-        : d
-    )
-    setAllSlots(updated)
-    changeSlotAvailability(slotId, dayId).catch(() => {
-      toast.error('Failed to update slot; reverting.')
-      fetchActiveSlots()
-    })
-  }
-
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    })
-
-  const formatTime = (t) => {
-    if (t.includes('AM') || t.includes('PM')) return t
-    let [h, m] = t.split(':').map(Number)
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    h = h % 12 || 12
-    return `${h}:${m.toString().padStart(2, '0')} ${ampm}`
-  }
-=======
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -384,7 +231,6 @@ const ManageSlots = () => {
     if (booked > 0) return "partially-booked";
     return "available";
   };
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   useEffect(() => {
     getAllDoctors();
@@ -393,27 +239,6 @@ const ManageSlots = () => {
   useEffect(() => {
     fetchActiveSlots();
   }, [doctorId, aToken]);
-
-<<<<<<< HEAD
-  const stats = getCurrentWeekSlots().reduce(
-    (acc, day) => {
-      day.slots.forEach((s) => {
-        acc.total++
-        if (s.isBooked) acc.booked++
-        else if (s.isAvailable) acc.available++
-        else acc.unavailable++
-      })
-      return acc
-    },
-    { total: 0, booked: 0, available: 0, unavailable: 0 }
-  )
-
-  const currentWeekSlots = getCurrentWeekSlots()
-=======
-  const selectedDoctorDetails =
-    doctorId && allSlots.length > 0 && allSlots[0]?.doctorInfo
-      ? allSlots[0].doctorInfo
-      : null;
 
   const getSlotStats = () => {
     if (!allSlots || allSlots.length === 0)
@@ -438,7 +263,6 @@ const ManageSlots = () => {
 
   const stats = getSlotStats();
   const currentWeekSlots = getCurrentWeekSlots();
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -460,10 +284,6 @@ const ManageSlots = () => {
                 </p>
               </div>
             </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
               {doctorId && (
                 <button
@@ -477,7 +297,6 @@ const ManageSlots = () => {
                     <FiPlus className="w-4 h-4 mr-2" />
                   )}
                   <span className="hidden sm:inline">
-<<<<<<< HEAD
                     {loading ? 'Creating...' : 'Create Slots'}
                   </span>
                   <span className="sm:hidden">
@@ -485,16 +304,6 @@ const ManageSlots = () => {
                   </span>
                 </button>
               )}
-=======
-                    {loading ? "Creating..." : "Create Slots"}
-                  </span>
-                  <span className="sm:hidden">
-                    {loading ? "Creating..." : "Create"}
-                  </span>
-                </button>
-              )}
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
               <button
                 onClick={fetchActiveSlots}
                 disabled={loading}
@@ -515,7 +324,6 @@ const ManageSlots = () => {
                 <span className="text-sm font-semibold text-gray-700">
                   Select Doctor:
                 </span>
-<<<<<<< HEAD
               </div>
               <div className="overflow-visible">
                 <select
@@ -530,8 +338,6 @@ const ManageSlots = () => {
                     </option>
                   ))}
                 </select>
-=======
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
               </div>
             </div>
 
@@ -562,10 +368,6 @@ const ManageSlots = () => {
                   {doctors.length} Doctors
                 </span>
               </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
               {doctorId && (
                 <>
                   <div className="flex items-center space-x-2">
@@ -574,30 +376,18 @@ const ManageSlots = () => {
                       {stats.total} Total Slots
                     </span>
                   </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                   <div className="flex items-center space-x-2">
                     <FiCheckCircle className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-700">
                       {stats.available} Available
                     </span>
                   </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                   <div className="flex items-center space-x-2">
                     <FiXCircle className="w-4 h-4 text-red-600" />
                     <span className="text-sm font-medium text-gray-700">
                       {stats.unavailable} Unavailable
                     </span>
                   </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                   <div className="flex items-center space-x-2">
                     <FiClock className="w-4 h-4 text-amber-500" />
                     <span className="text-sm font-medium text-gray-700">
@@ -620,73 +410,6 @@ const ManageSlots = () => {
 
       {/* Main Content */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-<<<<<<< HEAD
-        {doctorId && allSlots.length > 0 ? (
-          <>
-            {/* Week nav */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div className="flex items-center justify-between sm:justify-start space-x-4">
-                  <button
-                    onClick={() => navigateWeek(-1)}
-                    disabled={!canNavigate(-1)}
-                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronLeft className="w-5 h-5 text-gray-600" />
-                  </button>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {currentWeekStart.toLocaleDateString('en-US', {
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Week of{' '}
-                      {getWeekStart(currentWeekStart).toLocaleDateString(
-                        'en-US',
-                        { month: 'short', day: 'numeric' }
-                      )}{' '}
-                      -{' '}
-                      {new Date(
-                        getWeekStart(currentWeekStart).getTime() +
-                          6 * 24 * 60 * 60 * 1000
-                      ).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigateWeek(1)}
-                    disabled={!canNavigate(1)}
-                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronRight className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <FiCalendar className="w-4 h-4 text-teal-600" />
-                    <span className="font-medium text-gray-700">
-                      {currentWeekSlots.length} days with slots
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <FiCheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-green-700">
-                      {currentWeekSlots.reduce(
-                        (acc, day) =>
-                          acc +
-                          (day.slots.filter(
-                            (s) => s.isAvailable && !s.isBooked
-                          ).length || 0),
-                        0
-                      )}{' '}
-                      available this week
-                    </span>
-                  </div>
-=======
         {/* Week Navigation */}
         {doctorId && allSlots.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -757,14 +480,11 @@ const ManageSlots = () => {
                     )}{" "}
                     available this week
                   </span>
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                 </div>
               </div>
             </div>
-
-<<<<<<< HEAD
-            {/* Slots Grid */}
-=======
+          </div>
+        )}
         {/* Slots Display */}
         <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
@@ -797,44 +517,16 @@ const ManageSlots = () => {
               </p>
             </div>
           ) : (
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
             <div className="max-h-[calc(100vh-400px)] overflow-y-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 p-4 lg:p-6">
                 {currentWeekSlots.map((slotDay) => {
-<<<<<<< HEAD
-                  const status = (() => {
-                    const avail = slotDay.slots.filter(
-                      (s) => s.isAvailable && !s.isBooked
-                    ).length
-                    const booked = slotDay.slots.filter((s) => s.isBooked)
-                      .length
-                    if (!slotDay.slots.length) return 'empty'
-                    if (booked > 0 && avail === 0) return 'fully-booked'
-                    if (booked > 0) return 'partially-booked'
-                    if (avail === 0) return 'unavailable'
-                    return 'available'
-                  })()
-=======
                   const dayStatus = getDayStatus(slotDay);
-
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                   return (
                     <div
                       key={slotDay.id}
                       className={`
                         bg-gray-50 rounded-xl border-2 overflow-hidden hover:shadow-md transition-all duration-200
                         ${
-<<<<<<< HEAD
-                          status === 'empty'
-                            ? 'border-gray-200'
-                            : status === 'unavailable'
-                            ? 'border-red-200 bg-red-50'
-                            : status === 'fully-booked'
-                            ? 'border-amber-200 bg-amber-50'
-                            : status === 'partially-booked'
-                            ? 'border-orange-200 bg-orange-50'
-                            : 'border-green-200 bg-green-50'
-=======
                           dayStatus === "empty"
                             ? "border-gray-200"
                             : dayStatus === "unavailable"
@@ -844,53 +536,11 @@ const ManageSlots = () => {
                             : dayStatus === "partially-booked"
                             ? "border-orange-200 bg-orange-50"
                             : "border-green-200 bg-green-50"
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                         }
                       `}
                     >
                       <div
                         className={`
-<<<<<<< HEAD
-                          px-4 py-3
-                          ${
-                            status === 'empty'
-                              ? 'bg-gray-600'
-                              : status === 'unavailable'
-                              ? 'bg-red-600'
-                              : status === 'fully-booked'
-                              ? 'bg-amber-600'
-                              : status === 'partially-booked'
-                              ? 'bg-orange-600'
-                              : 'bg-green-600'
-                          }
-                        `}
-                      >
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-base font-semibold text-white flex items-center">
-                            <FiCalendar className="mr-2 text-white/80" />
-                            {formatDate(slotDay.date)}
-                          </h3>
-                          <div className="flex items-center">
-                            {status === 'unavailable' && (
-                              <FiXCircle className="w-4 h-4 text-red-200 mr-1" />
-                            )}
-                            {status === 'fully-booked' && (
-                              <FiClock className="w-4 h-4 text-amber-200 mr-1" />
-                            )}
-                            {status === 'partially-booked' && (
-                              <FiAlertTriangle className="w-4 h-4 text-orange-200 mr-1" />
-                            )}
-                            <span className="text-xs text-white/90 font-medium">
-                              {status === 'unavailable'
-                                ? 'No slots'
-                                : status === 'fully-booked'
-                                ? 'Fully booked'
-                                : status === 'partially-booked'
-                                ? 'Partially booked'
-                                : 'Available'}
-                            </span>
-                          </div>
-=======
                         px-4 py-3
                         ${
                           dayStatus === "empty"
@@ -934,7 +584,6 @@ const ManageSlots = () => {
                               </span>
                             </div>
                           )}
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                         </div>
                       </div>
                       <div className="p-3">
@@ -945,7 +594,10 @@ const ManageSlots = () => {
                                 key={s._id}
                                 onClick={() =>
                                   !s.isBooked &&
-                                  toggleSlot(s._id, slotDay.id)
+                                  handelchangeSlotAvailability(
+                                    s._id,
+                                    slotDay.id
+                                  )
                                 }
                                 title={
                                   s.isBooked
@@ -957,7 +609,6 @@ const ManageSlots = () => {
                                 className={`
                                   px-2 py-1.5 rounded-md border text-xs font-medium flex justify-between items-center cursor-pointer transition-all duration-200
                                   ${
-<<<<<<< HEAD
                                     s.isBooked
                                       ? 'bg-amber-100 border-amber-300 text-amber-800 cursor-not-allowed'
                                       : !s.isAvailable
@@ -971,64 +622,21 @@ const ManageSlots = () => {
                                 </span>
                                 <span
                                   className={`
-                                    w-2 h-2 rounded-full flex-shrink-0 ml-1
-                                    ${
-                                      s.isBooked
-                                        ? 'bg-amber-500'
-                                        : !s.isAvailable
-                                        ? 'bg-gray-400'
-                                        : 'bg-green-500'
-                                    }
-                                  `}
-                                />
-=======
-                                    slot.isBooked
-                                      ? "bg-amber-100 border-amber-300 cursor-not-allowed text-amber-800"
-                                      : !slot.isAvailable
-                                      ? "bg-gray-100 border-gray-300 text-gray-600"
-                                      : "bg-green-100 border-green-300 hover:border-green-400 hover:bg-green-200 text-green-800"
-                                  }
-                                `}
-                                onClick={() =>
-                                  !slot.isBooked &&
-                                  handelchangeSlotAvailability(
-                                    slot._id,
-                                    slotDay.id
-                                  )
-                                }
-                                title={
-                                  slot.isBooked
-                                    ? "Booked"
-                                    : !slot.isAvailable
-                                    ? "Unavailable"
-                                    : "Click to toggle availability"
-                                }
-                              >
-                                <span className="truncate">
-                                  {formatTime(slot.slotTime)}
-                                </span>
-                                <span
-                                  className={`
                                   w-2 h-2 rounded-full flex-shrink-0 ml-1
                                   ${
-                                    slot.isBooked
+                                    s.isBooked
                                       ? "bg-amber-500"
-                                      : !slot.isAvailable
+                                      : !s.isAvailable
                                       ? "bg-gray-400"
                                       : "bg-green-500"
                                   }
                                 `}
                                 ></span>
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                               </div>
                             ))}
                           </div>
                         ) : (
-<<<<<<< HEAD
-                          <div className="h-12 flex items-center justify-center">
-=======
                           <div className="flex items-center justify-center h-12">
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
                             <p className="text-gray-500 text-sm">
                               No time slots
                             </p>
@@ -1039,11 +647,7 @@ const ManageSlots = () => {
                   );
                 })}
               </div>
-<<<<<<< HEAD
-=======
-
               {/* Empty week message */}
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
               {currentWeekSlots.length === 0 && (
                 <div className="p-12 text-center">
                   <FiCalendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -1056,33 +660,11 @@ const ManageSlots = () => {
                 </div>
               )}
             </div>
-          </>
-        ) : loading ? (
-          <div className="p-12 flex flex-col items-center">
-            <Loading />
-            <p className="text-teal-700 mt-4 font-medium">
-              Loading appointment slots...
-            </p>
-          </div>
-        ) : (
-          <div className="p-12 text-center">
-            <FaRegCalendarAlt className="w-16 h-16 text-teal-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              Select a Doctor
-            </h2>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Please select a physician from the dropdown to manage their
-              appointment schedule.
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-<<<<<<< HEAD
-export default ManageSlots
-=======
 export default ManageSlots;
->>>>>>> cf5c1c256f63270edc172fcbac9b0c1c69ac1488
