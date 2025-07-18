@@ -1,18 +1,35 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
   const { token, setToken, userData } = useContext(AppContext);
+
+  // Controls mobile menu
+  const [showMenu, setShowMenu] = useState(false);
+
+  // Controls desktop-profile dropdown
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(false);
     navigate("/login");
   };
+
+  // Close dropdown if click happens outside of it
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -22,13 +39,13 @@ const Navbar = () => {
       >
         <img
           onClick={() => navigate("/")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") navigate("/");
+          }}
           className="w-14 cursor-pointer drop-shadow-md"
           src={assets.logo}
           alt="App logo"
           tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") navigate("/");
-          }}
         />
         <ul className="md:flex items-start gap-7 font-semibold hidden">
           <NavLink
@@ -92,7 +109,9 @@ const Navbar = () => {
             </li>
           </NavLink>
         </ul>
-        <div className="flex items-center gap-4 ">
+
+        {/* Right side: profile / login & mobile menu button */}
+        <div className="flex items-center gap-4">
           {token && userData ? (
             <div
               className="hidden md:flex items-center gap-2 cursor-pointer group relative"
@@ -153,6 +172,8 @@ const Navbar = () => {
               Create account
             </button>
           )}
+
+          {/* Mobile menu toggle */}
           <button
             onClick={() => setShowMenu(true)}
             className="w-6 md:hidden"
@@ -162,6 +183,7 @@ const Navbar = () => {
           </button>
         </div>
       </nav>
+
       {/* ---- Mobile Menu ---- */}
       <div
         className={`md:hidden ${
@@ -179,6 +201,8 @@ const Navbar = () => {
             <img src={assets.cross_icon} alt="Close menu" />
           </button>
         </div>
+
+        {/* Mobile nav links */}
         <ul className="flex flex-col items-center gap-4 mt-5 px-5 text-lg font-semibold">
           <NavLink
             onClick={() => setShowMenu(false)}
@@ -245,7 +269,8 @@ const Navbar = () => {
             </p>
           </NavLink>
         </ul>
-        {/* Mobile Auth/User Section */}
+
+        {/* Mobile profile / auth */}
         <div className="flex flex-col items-center gap-4 mt-6 px-5">
           {token && userData ? (
             <div className="flex flex-col items-center gap-2 w-full">

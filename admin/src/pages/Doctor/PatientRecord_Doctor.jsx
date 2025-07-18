@@ -723,7 +723,7 @@ const PatientRecord_Doctor = () => {
             <h3 className="text-xl font-semibold text-gray-800">
               Add Medications
             </h3>
-            <form onSubmit={handleAddMedication} className="space-y-4">
+            <form onSubmit={()=>handleAddMedication} className="space-y-4">
               <p className="text-gray-800 font-semibold">Medication Name</p>
               <input
                 type="text"

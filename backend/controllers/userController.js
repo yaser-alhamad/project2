@@ -198,21 +198,19 @@ const cancelAppointment = async (req, res) => {
       cancelled: true,
     });
 
-    // releasing doctor slot
-    const { docId, slotDate, slotTime } = appointmentData;
+   
+    // Find the day document that contains the slot
+    const soltDay = await SoltsTable.findOne({ "slots._id": appointmentData.slotId });
 
-    const doctorData = await doctorModel.findById(docId);
-
-    let slots_booked = doctorData.slots_booked;
-
-    slots_booked[slotDate] = slots_booked[slotDate].filter(
-      (e) => e !== slotTime
-    );
-
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
-    
-    // Update doctor performance data
-    await updateDoctorPerformanceData();
+    if (soltDay) {
+      // Find the slot in the slots array
+      const slot = soltDay.slots.id(appointmentData.slotId);
+      if (slot) {
+        slot.isBooked = false;
+        await soltDay.save();
+      }
+    }
+   
 
     res.json({ success: true, message: "Appointment Cancelled" });
   } catch (error) {
@@ -226,8 +224,32 @@ const listAppointment = async (req, res) => {
   try {
     const { userId } = req.body;
     const appointments = await appointmentModel.find({ userId });
-
-    res.json({ success: true, appointments });
+    const user = await userModel.findById(userId);
+    // For each appointment, fetch doctor info and patient info
+    const appointmentsData = await Promise.all(
+      appointments.map(async (appointment) => {
+        const doctor = await doctorModel.findById(appointment.docId).select('name email speciality _id image');
+        // patientId is the index in the patients array
+        let patient = null;
+        if (user && user.patients && user.patients.length > 0 && appointment.patientId !== undefined) {
+          // patientId could be an index or an _id, depending on how it's stored. We'll try both.
+          // Try as index
+          if (!isNaN(appointment.patientId) && user.patients[appointment.patientId]) {
+            patient = user.patients[appointment.patientId];
+          } else {
+            // Try as _id (if patients have _id)
+            patient = user.patients.find((p, idx) => p._id && p._id.toString() === appointment.patientId.toString());
+          }
+        }
+        return {
+          appointment,
+          doctor,
+          patient,
+        };
+      })
+    );
+    
+    res.json({ success: true, appointments: appointmentsData });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

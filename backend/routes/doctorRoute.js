@@ -14,6 +14,7 @@ import { loginDoctor,
               doctorPatientsRecord,
               getActiveSlots,
               changeSlotAvailability,
+              editPatientRecord
 } from '../controllers/doctorController.js';
 import authDoctor from '../middleware/authDoctor.js';
 const doctorRouter = express.Router();
@@ -27,6 +28,8 @@ doctorRouter.post("/complete-appointment", authDoctor, appointmentComplete)
 doctorRouter.get("/dashboard", authDoctor, doctorDashboard)
 doctorRouter.get("/profile", authDoctor, doctorProfile)
 doctorRouter.post("/update-profile", authDoctor, updateDoctorProfile)
+doctorRouter.post("/edit-patient-record", authDoctor, editPatientRecord)
+
 doctorRouter.post("/add-patient-record", authDoctor, addPatientRecord)
 doctorRouter.get("/patients-record/", authDoctor, doctorPatientsRecord)
 doctorRouter.get("/patient-record/:id", authDoctor, getPatientRecord)

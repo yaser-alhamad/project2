@@ -216,6 +216,26 @@ const DoctorContextProvider = (props) => {
           
         }
     };
+    const editPatientRecord = async (id, updatedData)=>{
+        try{
+            
+                const {data}= await axios.post(
+                    backendUrl+'/api/doctor/edit-patient-record',
+                    {id, updatedData},
+                    { headers: { dToken } }
+                );
+                if (data.success) {
+                    toast.success(data.message );
+                 
+                } else {
+                    toast.error(data.message );
+                    
+                }
+         } catch (error) {
+            toast.error(error.message);
+          
+        }
+    }
     const value = {
         dToken, setDToken, backendUrl,
         appointments,
@@ -236,7 +256,8 @@ const DoctorContextProvider = (props) => {
         allSlots,
         setAllSlots,
         fetchActiveSlots,
-        createPatientRecord
+        createPatientRecord,
+        editPatientRecord
     }
 
     return (

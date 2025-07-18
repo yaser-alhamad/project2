@@ -48,7 +48,7 @@ const ManageSlots = () => {
       .map((dateStr) => new Date(dateStr));
   };
 
-  // Navigate to next/previous week with data
+  // Navigate week
   const navigateWeek = (direction) => {
     const availableWeeks = getAvailableWeeks();
     if (availableWeeks.length === 0) return;
@@ -73,7 +73,6 @@ const ManageSlots = () => {
     setCurrentWeekStart(availableWeeks[newIndex]);
   };
 
-  // Check if navigation is possible
   const canNavigate = (direction) => {
     const availableWeeks = getAvailableWeeks();
     if (availableWeeks.length <= 1) return false;
@@ -91,7 +90,6 @@ const ManageSlots = () => {
     return newIndex >= 0 && newIndex < availableWeeks.length;
   };
 
-  // Filter slots for current week
   const getCurrentWeekSlots = () => {
     if (!allSlots.length) return [];
 
@@ -112,20 +110,19 @@ const ManageSlots = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(
+      const { data } = await axios.post(
         `${backendUrl}/api/admin/generate-slots`,
         { doctorId },
         { headers: { aToken } }
       );
-      if (response.data.success) {
-        toast.success("Slots generated successfully");
-        fetchActiveSlots();
+      if (data.success) {
+        toast.success('Slots generated successfully')
+        fetchActiveSlots()
       } else {
-        toast.error(response.data.message || "Failed to generate slots");
+        toast.error(data.message || 'Failed to generate slots')
       }
-    } catch (error) {
-      console.error("Error generating slots:", error);
-      toast.error("An error occurred while generating slots");
+    } catch {
+      toast.error('An error occurred while generating slots')
     }
     setLoading(false);
   };
@@ -138,12 +135,12 @@ const ManageSlots = () => {
     setLoading(true);
     setAllSlots([]);
     try {
-      const response = await axios.get(
+      const { data } = await axios.get(
         `${backendUrl}/api/admin/get-slots/${doctorId}`,
         { headers: { aToken } }
       );
-      if (response.data.success) {
-        setAllSlots(response.data.slotsData || []);
+      if (data.success) {
+        setAllSlots(data.slotsData || []);
       } else {
         setAllSlots([]);
       }
@@ -243,11 +240,6 @@ const ManageSlots = () => {
     fetchActiveSlots();
   }, [doctorId, aToken]);
 
-  const selectedDoctorDetails =
-    doctorId && allSlots.length > 0 && allSlots[0]?.doctorInfo
-      ? allSlots[0].doctorInfo
-      : null;
-
   const getSlotStats = () => {
     if (!allSlots || allSlots.length === 0)
       return { available: 0, booked: 0, unavailable: 0, total: 0 };
@@ -275,9 +267,9 @@ const ManageSlots = () => {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* Sticky Header */}
-      <div className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10 overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Header Row */}
+          {/* Title + Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <div className="p-2.5 bg-teal-100 rounded-lg">
@@ -292,7 +284,6 @@ const ManageSlots = () => {
                 </p>
               </div>
             </div>
-
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
               {doctorId && (
                 <button
@@ -306,14 +297,13 @@ const ManageSlots = () => {
                     <FiPlus className="w-4 h-4 mr-2" />
                   )}
                   <span className="hidden sm:inline">
-                    {loading ? "Creating..." : "Create Slots"}
+                    {loading ? 'Creating...' : 'Create Slots'}
                   </span>
                   <span className="sm:hidden">
-                    {loading ? "Creating..." : "Create"}
+                    {loading ? 'Creating...' : 'Create'}
                   </span>
                 </button>
               )}
-
               <button
                 onClick={fetchActiveSlots}
                 disabled={loading}
@@ -326,39 +316,42 @@ const ManageSlots = () => {
             </div>
           </div>
 
-          {/* Doctor Selection Row */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 mt-4">
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          {/* Doctor Selection */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 mt-4 overflow-visible">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 overflow-visible">
               <div className="flex items-center space-x-2">
                 <FaUserMd className="w-5 h-5 text-teal-600" />
                 <span className="text-sm font-semibold text-gray-700">
                   Select Doctor:
                 </span>
               </div>
-              <select
-                value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
-                className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors sm:min-w-[280px]"
-              >
-                <option value="">-- Choose a doctor --</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor._id} value={doctor._id}>
-                    Dr. {doctor.name} ({doctor.speciality})
-                  </option>
-                ))}
-              </select>
+              <div className="overflow-visible">
+                <select
+                  value={doctorId}
+                  onChange={(e) => setDoctorId(e.target.value)}
+                  className="relative px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors sm:min-w-[280px]"
+                >
+                  <option value="">-- Choose a doctor --</option>
+                  {doctors.map((doc) => (
+                    <option key={doc._id} value={doc._id}>
+                      Dr. {doc.name} ({doc.speciality})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {selectedDoctorDetails && (
+            {/* Selected Doctor Info */}
+            {allSlots.length > 0 && allSlots[0]?.doctorInfo && (
               <div className="flex items-center justify-center lg:justify-end">
                 <div className="flex items-center space-x-3 bg-teal-50 px-4 py-2.5 rounded-lg border border-teal-200">
                   <FaUserMd className="w-5 h-5 text-teal-600" />
                   <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
                     <span className="text-sm font-medium text-teal-800">
-                      Dr. {selectedDoctorDetails.name}
+                      Dr. {allSlots[0].doctorInfo.name}
                     </span>
                     <span className="text-xs text-teal-600 bg-teal-100 px-2 py-1 rounded-full">
-                      {selectedDoctorDetails.speciality}
+                      {allSlots[0].doctorInfo.speciality}
                     </span>
                   </div>
                 </div>
@@ -366,7 +359,7 @@ const ManageSlots = () => {
             )}
           </div>
 
-          {/* Stats Row */}
+          {/* Stats & Breadcrumb */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mt-4 pt-4 border-t border-gray-200">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
@@ -375,7 +368,6 @@ const ManageSlots = () => {
                   {doctors.length} Doctors
                 </span>
               </div>
-
               {doctorId && (
                 <>
                   <div className="flex items-center space-x-2">
@@ -384,21 +376,18 @@ const ManageSlots = () => {
                       {stats.total} Total Slots
                     </span>
                   </div>
-
                   <div className="flex items-center space-x-2">
                     <FiCheckCircle className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-700">
                       {stats.available} Available
                     </span>
                   </div>
-
                   <div className="flex items-center space-x-2">
                     <FiXCircle className="w-4 h-4 text-red-600" />
                     <span className="text-sm font-medium text-gray-700">
                       {stats.unavailable} Unavailable
                     </span>
                   </div>
-
                   <div className="flex items-center space-x-2">
                     <FiClock className="w-4 h-4 text-amber-500" />
                     <span className="text-sm font-medium text-gray-700">
@@ -408,7 +397,6 @@ const ManageSlots = () => {
                 </>
               )}
             </div>
-
             <div className="flex items-center text-sm text-gray-500">
               <span className="hover:text-teal-600 cursor-pointer">
                 Dashboard
@@ -497,7 +485,6 @@ const ManageSlots = () => {
             </div>
           </div>
         )}
-
         {/* Slots Display */}
         <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
@@ -531,11 +518,9 @@ const ManageSlots = () => {
             </div>
           ) : (
             <div className="max-h-[calc(100vh-400px)] overflow-y-auto">
-              {/* Mobile: Single column, Desktop: Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 p-4 lg:p-6">
                 {currentWeekSlots.map((slotDay) => {
                   const dayStatus = getDayStatus(slotDay);
-
                   return (
                     <div
                       key={slotDay.id}
@@ -601,48 +586,47 @@ const ManageSlots = () => {
                           )}
                         </div>
                       </div>
-
                       <div className="p-3">
-                        {slotDay.slots && slotDay.slots.length > 0 ? (
+                        {slotDay.slots.length ? (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                            {slotDay.slots.map((slot) => (
+                            {slotDay.slots.map((s) => (
                               <div
-                                key={slot._id}
-                                className={`
-                                  px-2 py-1.5 rounded-md border text-xs font-medium flex justify-between items-center cursor-pointer transition-all duration-200
-                                  ${
-                                    slot.isBooked
-                                      ? "bg-amber-100 border-amber-300 cursor-not-allowed text-amber-800"
-                                      : !slot.isAvailable
-                                      ? "bg-gray-100 border-gray-300 text-gray-600"
-                                      : "bg-green-100 border-green-300 hover:border-green-400 hover:bg-green-200 text-green-800"
-                                  }
-                                `}
+                                key={s._id}
                                 onClick={() =>
-                                  !slot.isBooked &&
+                                  !s.isBooked &&
                                   handelchangeSlotAvailability(
-                                    slot._id,
+                                    s._id,
                                     slotDay.id
                                   )
                                 }
                                 title={
-                                  slot.isBooked
-                                    ? "Booked"
-                                    : !slot.isAvailable
-                                    ? "Unavailable"
-                                    : "Click to toggle availability"
+                                  s.isBooked
+                                    ? 'Booked'
+                                    : !s.isAvailable
+                                    ? 'Unavailable'
+                                    : 'Click to toggle availability'
                                 }
+                                className={`
+                                  px-2 py-1.5 rounded-md border text-xs font-medium flex justify-between items-center cursor-pointer transition-all duration-200
+                                  ${
+                                    s.isBooked
+                                      ? 'bg-amber-100 border-amber-300 text-amber-800 cursor-not-allowed'
+                                      : !s.isAvailable
+                                      ? 'bg-gray-100 border-gray-300 text-gray-600'
+                                      : 'bg-green-100 border-green-300 hover:border-green-400 hover:bg-green-200 text-green-800'
+                                  }
+                                `}
                               >
                                 <span className="truncate">
-                                  {formatTime(slot.slotTime)}
+                                  {formatTime(s.slotTime)}
                                 </span>
                                 <span
                                   className={`
                                   w-2 h-2 rounded-full flex-shrink-0 ml-1
                                   ${
-                                    slot.isBooked
+                                    s.isBooked
                                       ? "bg-amber-500"
-                                      : !slot.isAvailable
+                                      : !s.isAvailable
                                       ? "bg-gray-400"
                                       : "bg-green-500"
                                   }
@@ -663,7 +647,6 @@ const ManageSlots = () => {
                   );
                 })}
               </div>
-
               {/* Empty week message */}
               {currentWeekSlots.length === 0 && (
                 <div className="p-12 text-center">
