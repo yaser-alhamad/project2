@@ -34,7 +34,7 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className="flex items-center justify-between text-sm py-4 px-6 bg-white/80 backdrop-blur-md shadow-lg rounded-2xl"
+        className="flex z-[100] sticky top-0 items-center justify-between text-sm py-4 px-6 bg-white/80 backdrop-blur-md shadow-lg rounded-2xl"
         aria-label="Main Navigation"
       >
         <img
